@@ -1,0 +1,106 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <defs>
+    <clipPath id="leftHalf">
+      <rect x="0" y="0" width="400" height="1000"/>
+    </clipPath>
+    <clipPath id="rightHalf">
+      <rect x="400" y="0" width="400" height="1000"/>
+    </clipPath>
+    <radialGradient id="bgGradLeft" cx="30%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#2a1f3d"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </radialGradient>
+    <radialGradient id="bgGradRight" cx="70%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a0a2e"/>
+      <stop offset="100%" stop-color="#0d0d0d"/>
+    </radialGradient>
+    <filter id="faceShading">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Backgrounds -->
+  <rect x="0"   y="0" width="400" height="1000" fill="url(#bgGradLeft)"/>
+  <rect x="400" y="0" width="400" height="1000" fill="url(#bgGradRight)"/>
+
+  <!-- Neck -->
+  <rect x="345" y="760" width="110" height="240" rx="18" fill="#c8956c"/>
+
+  <!-- Full face (clipped per half) -->
+
+  <!-- LEFT HALF — serious / stern -->
+  <g clip-path="url(#leftHalf)">
+    <ellipse cx="400" cy="500" rx="240" ry="290" fill="#d4a06a"/>
+    <!-- Left ear -->
+    <ellipse cx="162" cy="500" rx="28" ry="40" fill="#c8956c"/>
+    <!-- Cheekbone shadow -->
+    <ellipse cx="270" cy="560" rx="60" ry="30" fill="rgba(0,0,0,0.08)"/>
+    <!-- Hair — left side swept back, tense -->
+    <path d="M165,340 Q180,130 400,100 Q400,200 380,220 Q300,210 250,250 Q200,290 185,340 Z" fill="#1a0e08"/>
+    <path d="M165,340 Q168,290 195,260 Q215,240 250,235 Q220,280 210,320 Z" fill="#261410"/>
+    <!-- Left eyebrow (furrowed / pushed down — anger) -->
+    <path d="M218,305 Q275,278 355,292" stroke="#1a0e08" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <!-- Frown crease -->
+    <path d="M350,305 Q370,330 360,348" stroke="rgba(0,0,0,0.2)" stroke-width="4" fill="none"/>
+    <!-- Left eye (squinting) -->
+    <ellipse cx="288" cy="360" rx="55" ry="32" fill="white"/>
+    <ellipse cx="292" cy="364" rx="26" ry="26" fill="#3a2200"/>
+    <ellipse cx="283" cy="357" rx="11" ry="11" fill="black"/>
+    <ellipse cx="290" cy="352" rx="4"  ry="4"  fill="white"/>
+    <!-- Upper eyelid (squint) -->
+    <path d="M233,348 Q288,330 343,350" stroke="#c8956c" stroke-width="5" fill="none"/>
+    <!-- Nose (left) -->
+    <path d="M378,440 Q368,478 356,500 Q370,515 400,520" stroke="#b07848" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Nostril shadow -->
+    <ellipse cx="363" cy="510" rx="12" ry="6" fill="rgba(0,0,0,0.15)" transform="rotate(-15,363,510)"/>
+    <!-- Left mouth — thin, tight, serious -->
+    <path d="M240,590 Q310,585 400,588" stroke="#a0503a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- Jaw definition -->
+    <path d="M165,520 Q185,680 310,760 Q360,775 400,778" stroke="rgba(0,0,0,0.1)" stroke-width="2" fill="none"/>
+  </g>
+
+  <!-- RIGHT HALF — wild / excited / unhinged grin -->
+  <g clip-path="url(#rightHalf)">
+    <ellipse cx="400" cy="500" rx="240" ry="290" fill="#d4a06a"/>
+    <!-- Right ear -->
+    <ellipse cx="638" cy="500" rx="28" ry="40" fill="#c8956c"/>
+    <!-- Cheekbone highlight -->
+    <ellipse cx="530" cy="550" rx="50" ry="25" fill="rgba(255,255,255,0.06)"/>
+    <!-- Hair — right side wild, dishevelled -->
+    <path d="M635,340 Q620,130 400,100 Q400,200 418,222 Q480,208 530,240 Q590,276 615,340 Z" fill="#1a0e08"/>
+    <path d="M610,300 Q638,260 635,340 Q620,290 590,280 Z" fill="#261410"/>
+    <path d="M570,240 Q620,200 635,270 Q595,245 575,255 Z" fill="#1a0e08"/>
+    <!-- Right eyebrow (wildly raised) -->
+    <path d="M445,268 Q500,242 568,260" stroke="#1a0e08" stroke-width="9" fill="none" stroke-linecap="round"/>
+    <!-- Right eye (enormous, wild open) -->
+    <ellipse cx="510" cy="362" rx="60" ry="56" fill="white"/>
+    <ellipse cx="508" cy="367" rx="30" ry="30" fill="#3a2200"/>
+    <ellipse cx="499" cy="358" rx="13" ry="13" fill="black"/>
+    <ellipse cx="507" cy="352" rx="5"  ry="5"  fill="white"/>
+    <!-- Crazy vein in eye -->
+    <path d="M458,340 Q472,348 480,360" stroke="#e04040" stroke-width="1.5" fill="none"/>
+    <path d="M558,338 Q545,345 537,355" stroke="#e04040" stroke-width="1.5" fill="none"/>
+    <!-- Right mouth — enormous grin, teeth showing -->
+    <path d="M400,588 Q460,642 565,592" stroke="#a0503a" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <!-- Teeth -->
+    <path d="M412,592 Q460,634 550,594" stroke="white" stroke-width="12" fill="none" stroke-linecap="round"/>
+    <!-- Tongue hint -->
+    <ellipse cx="480" cy="618" rx="22" ry="12" fill="#e06060" opacity="0.7"/>
+    <!-- Cheek crinkle -->
+    <path d="M568,538 Q590,555 578,578" stroke="rgba(0,0,0,0.18)" stroke-width="3" fill="none"/>
+    <!-- Jaw -->
+    <path d="M635,520 Q615,680 490,760 Q445,775 400,778" stroke="rgba(0,0,0,0.1)" stroke-width="2" fill="none"/>
+  </g>
+
+  <!-- Chin (below both halves) -->
+  <ellipse cx="400" cy="778" rx="80" ry="24" fill="#c8956c"/>
+
+  <!-- Centre dividing line (subtle) -->
+  <line x1="400" y1="0" x2="400" y2="1000" stroke="rgba(255,255,255,0.12)" stroke-width="2" stroke-dasharray="0"/>
+
+  <!-- Placeholder label -->
+  <text x="400" y="970" text-anchor="middle"
+    font-family="Arial, sans-serif" font-size="18"
+    fill="rgba(255,255,255,0.25)">[PLACEHOLDER — replace with real photo]</text>
+</svg>
