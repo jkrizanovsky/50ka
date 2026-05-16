@@ -53,12 +53,24 @@
 
       <!-- The face image (scales via JS scroll handler) -->
       <div id="face-img-wrapper">
-        <img
-          id="face-img"
-          src="images/face.svg"
-          alt="Tvář"
-          loading="eager"
-        />
+        <div id="face-img">
+          <img
+            class="face-half"
+            src="images/Lenka_main_left.png"
+            alt="Levá polovina obličeje Lenky"
+            width="960"
+            height="1080"
+            loading="eager"
+          />
+          <img
+            class="face-half"
+            src="images/Petr_main_right.png"
+            alt="Pravá polovina obličeje Petra"
+            width="960"
+            height="1080"
+            loading="eager"
+          />
+        </div>
       </div>
 
       <!-- Overlay: question text + invisible split buttons
