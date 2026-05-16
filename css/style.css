@@ -110,6 +110,7 @@ body {
 }
 
 #face-sticky {
+  --face-start-blur: 18px;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -138,7 +139,7 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   opacity: 0;
-  filter: blur(18px);
+  filter: blur(var(--face-start-blur));
   will-change: opacity, filter;
 }
 
