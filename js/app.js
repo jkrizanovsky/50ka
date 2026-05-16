@@ -90,6 +90,8 @@ function initScrollZoom() {
   if (!Number.isFinite(startBlurPx)) return;
   const ANIMATION_END_PROGRESS = 0.48;
   const REVEAL_SEED_OPACITY = 0.12;
+  const REVEAL_START_THRESHOLD = 0.5;
+  const CUE_FADE_THRESHOLD = 0.22;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;
 
@@ -104,7 +106,7 @@ function initScrollZoom() {
     const totalScrollable = zoneHeight - vh;
     const scrollInZone    = scrollY - zoneTop;
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
-    const revealStartY = zoneTop - (welcomeHeight * 0.5);
+    const revealStartY = zoneTop - (welcomeHeight * REVEAL_START_THRESHOLD);
     const revealEndY = zoneTop + (totalScrollable * ANIMATION_END_PROGRESS);
     const revealRange = Math.max(1, revealEndY - revealStartY);
     const animationProgress = Math.max(
@@ -123,7 +125,7 @@ function initScrollZoom() {
     faceImg.style.opacity = clarity;
 
     if (scrollCue) {
-      const cueFadeProgress = Math.max(0, Math.min(1, scrollY / (welcomeHeight * 0.22)));
+      const cueFadeProgress = Math.max(0, Math.min(1, scrollY / (welcomeHeight * CUE_FADE_THRESHOLD)));
       scrollCue.style.opacity = (1 - cueFadeProgress).toString();
     }
 
