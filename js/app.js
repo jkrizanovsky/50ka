@@ -83,7 +83,6 @@ function initScrollZoom() {
   if (!zoomZone || !faceImg) return;
 
   const startBlur = parseFloat(getComputedStyle(faceImg).getPropertyValue('--face-start-blur')) || 18;
-  const START_OPACITY = 0;
   const ANIMATION_END = 0.48;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;
@@ -103,9 +102,8 @@ function initScrollZoom() {
     // Far away: blurrier + transparent. Close: sharp + opaque.
     const clarity = 1 - Math.pow(1 - animationProgress, 2.4);
     const blurPx = startBlur * (1 - clarity);
-    const opacity = START_OPACITY + (1 - START_OPACITY) * clarity;
     faceImg.style.filter = `blur(${blurPx}px)`;
-    faceImg.style.opacity = opacity;
+    faceImg.style.opacity = clarity;
 
     // Fade in the overlay buttons near the end
     if (faceOverlay) {
