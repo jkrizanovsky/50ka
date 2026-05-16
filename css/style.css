@@ -137,10 +137,9 @@ body {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  transform: scale(0.04);
-  transform-origin: center center;
-  transition: transform 0.05s linear;
-  will-change: transform;
+  opacity: 0;
+  filter: blur(18px);
+  will-change: opacity, filter;
 }
 
 .face-half {
