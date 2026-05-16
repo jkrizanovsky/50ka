@@ -43,6 +43,8 @@ body {
    SECTION 1 — Welcome
    ============================================================ */
 #welcome {
+  --scroll-cue-top: 68%;
+  --scroll-cue-opacity: 0.55;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -98,6 +100,39 @@ body {
   letter-spacing: 0.02em;
   text-align: center;
   margin-top: 0.3rem;
+}
+
+#scroll-cue {
+  position: absolute;
+  left: 50%;
+  top: var(--scroll-cue-top);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  pointer-events: none;
+  opacity: var(--scroll-cue-opacity);
+  transition: opacity 0.25s ease;
+}
+
+.scroll-cue-arrow {
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.35rem;
+  color: #555;
+  animation: scrollCuePulse 1.7s ease-in-out infinite;
+}
+
+@keyframes scrollCuePulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: var(--scroll-cue-opacity);
+  }
+  50% {
+    transform: translateY(5px);
+    opacity: 0.95;
+  }
 }
 
 /* ============================================================
@@ -346,6 +381,10 @@ body {
 
   #cycling-img {
     height: clamp(2rem, 11vw, 4rem);
+  }
+
+  #scroll-cue {
+    --scroll-cue-top: 72%;
   }
 
   .face-question {
