@@ -87,6 +87,7 @@ function initScrollZoom() {
   );
   if (!Number.isFinite(startBlurPx)) return;
   const ANIMATION_END_PROGRESS = 0.48;
+  const REVEAL_SEED_OPACITY = 0.12;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;
 
@@ -101,9 +102,13 @@ function initScrollZoom() {
     const scrollInZone    = scrollY - zoneTop;
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
     const animationProgress = Math.min(progress / ANIMATION_END_PROGRESS, 1);
+    const hasStartedScrollingInZone = scrollInZone > 0;
 
     // Far away: blurrier + transparent. Close: sharp + opaque.
-    const clarity = 1 - Math.pow(1 - animationProgress, 2.4);
+    const easedClarity = 1 - Math.pow(1 - animationProgress, 2.4);
+    const clarity = hasStartedScrollingInZone
+      ? REVEAL_SEED_OPACITY + ((1 - REVEAL_SEED_OPACITY) * easedClarity)
+      : 0;
     const blurPx = startBlurPx * (1 - clarity);
     faceImg.style.filter = `blur(${blurPx}px)`;
     faceImg.style.opacity = clarity;
