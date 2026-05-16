@@ -44,6 +44,7 @@ body {
    ============================================================ */
 #welcome {
   --scroll-cue-top: 68%;
+  --scroll-cue-opacity: 0.55;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -112,7 +113,7 @@ body {
   width: 2rem;
   height: 2rem;
   pointer-events: none;
-  opacity: 0.55;
+  opacity: var(--scroll-cue-opacity);
   transition: opacity 0.25s ease;
 }
 
@@ -126,7 +127,7 @@ body {
 @keyframes scrollCuePulse {
   0%, 100% {
     transform: translateY(0);
-    opacity: 0.5;
+    opacity: var(--scroll-cue-opacity);
   }
   50% {
     transform: translateY(5px);

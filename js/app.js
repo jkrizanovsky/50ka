@@ -84,7 +84,7 @@ function initScrollZoom() {
   const scrollCue = document.getElementById('scroll-cue');
   if (!zoomZone || !faceImg) return;
   if (!welcomeSection) {
-    console.warn('[50ka] Missing #welcome section; using viewport height fallback for reveal timing.');
+    console.warn('[face-reveal] Missing #welcome section; using viewport fallback for reveal timing.');
   }
 
   const startBlurPx = parseFloat(
@@ -95,6 +95,7 @@ function initScrollZoom() {
   const REVEAL_SEED_OPACITY = 0.12;
   const REVEAL_START_THRESHOLD = 0.5;
   const CUE_FADE_THRESHOLD = 0.22;
+  const MIN_REVEAL_RANGE = 1;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;
 
@@ -111,7 +112,7 @@ function initScrollZoom() {
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
     const revealStartY = zoneTop - (welcomeHeight * REVEAL_START_THRESHOLD);
     const revealEndY = zoneTop + (totalScrollable * ANIMATION_END_PROGRESS);
-    const safeRevealEndY = Math.max(revealEndY, revealStartY + 1);
+    const safeRevealEndY = Math.max(revealEndY, revealStartY + MIN_REVEAL_RANGE);
     const revealRange = safeRevealEndY - revealStartY;
     const animationProgress = Math.max(
       0,
@@ -130,7 +131,7 @@ function initScrollZoom() {
 
     if (scrollCue) {
       const cueFadeProgress = Math.max(0, Math.min(1, scrollY / (welcomeHeight * CUE_FADE_THRESHOLD)));
-      scrollCue.style.opacity = (1 - cueFadeProgress).toString();
+      scrollCue.style.opacity = 1 - cueFadeProgress;
     }
 
     // Fade in the overlay buttons near the end
