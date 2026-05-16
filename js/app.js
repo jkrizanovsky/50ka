@@ -136,7 +136,7 @@ function initScrollZoom() {
     // Reveal overlay when the face image reaches its final state
     if (faceOverlay) {
       const shouldShowOverlay = animationProgress >= OVERLAY_REVEAL_PROGRESS;
-      faceOverlay.style.opacity = shouldShowOverlay ? '1' : '0';
+      faceOverlay.style.opacity = shouldShowOverlay ? 1 : 0;
       if (shouldShowOverlay) {
         faceOverlay.classList.add('visible');
       } else {
