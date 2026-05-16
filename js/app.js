@@ -82,8 +82,8 @@ function initScrollZoom() {
   const faceOverlay = document.getElementById('face-overlay');
   if (!zoomZone || !faceImg) return;
 
-  const startBlur = parseFloat(getComputedStyle(faceImg).getPropertyValue('--face-start-blur')) || 18;
-  const ANIMATION_END = 0.48;
+  const startBlurPx = parseInt(getComputedStyle(faceImg).getPropertyValue('--face-start-blur'), 10) || 18;
+  const ANIMATION_END_PROGRESS = 0.48;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;
 
@@ -97,11 +97,11 @@ function initScrollZoom() {
     const totalScrollable = zoneHeight - vh;
     const scrollInZone    = scrollY - zoneTop;
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
-    const animationProgress = Math.min(progress / ANIMATION_END, 1);
+    const animationProgress = Math.min(progress / ANIMATION_END_PROGRESS, 1);
 
     // Far away: blurrier + transparent. Close: sharp + opaque.
     const clarity = 1 - Math.pow(1 - animationProgress, 2.4);
-    const blurPx = startBlur * (1 - clarity);
+    const blurPx = startBlurPx * (1 - clarity);
     faceImg.style.filter = `blur(${blurPx}px)`;
     faceImg.style.opacity = clarity;
 
