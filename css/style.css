@@ -43,6 +43,7 @@ body {
    SECTION 1 — Welcome
    ============================================================ */
 #welcome {
+  --scroll-cue-top: 68%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -103,7 +104,7 @@ body {
 #scroll-cue {
   position: absolute;
   left: 50%;
-  top: 68%;
+  top: var(--scroll-cue-top);
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -382,7 +383,7 @@ body {
   }
 
   #scroll-cue {
-    top: 72%;
+    --scroll-cue-top: 72%;
   }
 
   .face-question {

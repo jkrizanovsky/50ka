@@ -83,6 +83,9 @@ function initScrollZoom() {
   const faceOverlay = document.getElementById('face-overlay');
   const scrollCue = document.getElementById('scroll-cue');
   if (!zoomZone || !faceImg) return;
+  if (!welcomeSection) {
+    console.warn('[50ka] Missing #welcome section; using viewport height fallback for reveal timing.');
+  }
 
   const startBlurPx = parseFloat(
     getComputedStyle(faceImg).getPropertyValue('--face-start-blur').trim()
@@ -108,7 +111,8 @@ function initScrollZoom() {
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
     const revealStartY = zoneTop - (welcomeHeight * REVEAL_START_THRESHOLD);
     const revealEndY = zoneTop + (totalScrollable * ANIMATION_END_PROGRESS);
-    const revealRange = Math.max(1, revealEndY - revealStartY);
+    const safeRevealEndY = Math.max(revealEndY, revealStartY + 1);
+    const revealRange = safeRevealEndY - revealStartY;
     const animationProgress = Math.max(
       0,
       Math.min(1, (scrollY - revealStartY) / revealRange)
