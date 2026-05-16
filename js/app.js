@@ -84,6 +84,8 @@ function initScrollZoom() {
 
   const MIN_SCALE = 0.04;
   const MAX_SCALE = 1.0;
+  const MAX_BLUR_PX = 18;
+  const MIN_OPACITY = 0.22;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.82;
 
@@ -102,6 +104,13 @@ function initScrollZoom() {
     const eased = 1 - Math.pow(1 - progress, 2.2);
     const scale = MIN_SCALE + (MAX_SCALE - MIN_SCALE) * eased;
     faceImg.style.transform = `scale(${scale})`;
+
+    // Far away: blurrier + more transparent. Close: sharp + opaque.
+    const clarity = Math.pow(progress, 1.35);
+    const blurPx = MAX_BLUR_PX * (1 - clarity);
+    const opacity = MIN_OPACITY + (1 - MIN_OPACITY) * clarity;
+    faceImg.style.filter = `blur(${blurPx}px)`;
+    faceImg.style.opacity = opacity;
 
     // Fade in the overlay buttons near the end
     if (faceOverlay) {
