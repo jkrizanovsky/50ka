@@ -77,9 +77,11 @@ function initCyclingNumber() {
    When the face is ready the split buttons fade in.
    ============================================================ */
 function initScrollZoom() {
+  const welcomeSection = document.getElementById('welcome');
   const zoomZone   = document.getElementById('zoom-zone');
   const faceImg    = document.getElementById('face-img');
   const faceOverlay = document.getElementById('face-overlay');
+  const scrollCue = document.getElementById('scroll-cue');
   if (!zoomZone || !faceImg) return;
 
   const startBlurPx = parseFloat(
@@ -96,22 +98,34 @@ function initScrollZoom() {
     const zoneTop    = zoomZone.offsetTop;
     const zoneHeight = zoomZone.offsetHeight;
     const vh         = window.innerHeight;
+    const welcomeHeight = welcomeSection ? welcomeSection.offsetHeight : vh;
 
     // Scrollable distance within the zone
     const totalScrollable = zoneHeight - vh;
     const scrollInZone    = scrollY - zoneTop;
     const progress = Math.max(0, Math.min(1, scrollInZone / totalScrollable));
-    const animationProgress = Math.min(progress / ANIMATION_END_PROGRESS, 1);
-    const hasStartedScrollingInZone = scrollInZone > 0;
+    const revealStartY = zoneTop - (welcomeHeight * 0.5);
+    const revealEndY = zoneTop + (totalScrollable * ANIMATION_END_PROGRESS);
+    const revealRange = Math.max(1, revealEndY - revealStartY);
+    const animationProgress = Math.max(
+      0,
+      Math.min(1, (scrollY - revealStartY) / revealRange)
+    );
+    const hasStartedReveal = scrollY >= revealStartY;
 
     // Far away: blurrier + transparent. Close: sharp + opaque.
     const easedClarity = 1 - Math.pow(1 - animationProgress, 2.4);
-    const clarity = hasStartedScrollingInZone
+    const clarity = hasStartedReveal
       ? REVEAL_SEED_OPACITY + ((1 - REVEAL_SEED_OPACITY) * easedClarity)
       : 0;
     const blurPx = startBlurPx * (1 - clarity);
     faceImg.style.filter = `blur(${blurPx}px)`;
     faceImg.style.opacity = clarity;
+
+    if (scrollCue) {
+      const cueFadeProgress = Math.max(0, Math.min(1, scrollY / (welcomeHeight * 0.22)));
+      scrollCue.style.opacity = (1 - cueFadeProgress).toString();
+    }
 
     // Fade in the overlay buttons near the end
     if (faceOverlay) {
