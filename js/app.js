@@ -82,13 +82,10 @@ function initScrollZoom() {
   const faceOverlay = document.getElementById('face-overlay');
   if (!zoomZone || !faceImg) return;
 
-  const DEFAULT_START_BLUR_PX = 18;
-  const configuredStartBlurPx = parseFloat(
-    getComputedStyle(faceImg).getPropertyValue('--face-start-blur').replace('px', '')
+  const startBlurPx = parseFloat(
+    getComputedStyle(faceImg).getPropertyValue('--face-start-blur').trim()
   );
-  const startBlurPx = Number.isFinite(configuredStartBlurPx)
-    ? configuredStartBlurPx
-    : DEFAULT_START_BLUR_PX;
+  if (!Number.isFinite(startBlurPx)) return;
   const ANIMATION_END_PROGRESS = 0.48;
   // Progress at which buttons start fading in (0–1)
   const BUTTONS_FADE_START = 0.44;

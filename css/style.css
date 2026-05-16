@@ -110,7 +110,7 @@ body {
 }
 
 #face-sticky {
-  --face-start-blur: 18px; /* Keep in sync with DEFAULT_START_BLUR_PX fallback in js/app.js */
+  --face-start-blur: 18px;
   position: sticky;
   top: 0;
   height: 100vh;
