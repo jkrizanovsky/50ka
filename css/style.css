@@ -135,12 +135,18 @@ body {
 #face-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center top;
+  display: flex;
   transform: scale(0.04);
   transform-origin: center center;
   transition: transform 0.05s linear;
   will-change: transform;
+}
+
+.face-half {
+  width: 50%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 /* ---------- Face overlay (buttons + question) ---------- */
