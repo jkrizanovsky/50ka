@@ -353,3 +353,45 @@ body {
     max-width: 300px;
   }
 }
+
+/* ============================================================
+   ME MYSELF AND IRENE PAGE
+   ============================================================ */
+.irene-page {
+  min-height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.irene-title {
+  font-size: clamp(2rem, 6vw, 5.5rem);
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  text-align: center;
+}
+
+.irene-images {
+  width: min(1200px, 100%);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  align-items: flex-end;
+}
+
+.irene-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #ffffff;
+}
+
+@media (max-width: 900px) {
+  .irene-images {
+    grid-template-columns: 1fr;
+  }
+}
