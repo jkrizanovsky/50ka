@@ -96,8 +96,7 @@ function initScrollZoom() {
   const REVEAL_START_THRESHOLD = 0.5;
   const CUE_FADE_THRESHOLD = 0.22;
   const MIN_REVEAL_RANGE = 1;
-  // Progress at which buttons start fading in (0–1)
-  const BUTTONS_FADE_START = 0.44;
+  const OVERLAY_REVEAL_PROGRESS = 0.995;
 
   function onScroll() {
     const scrollY    = window.scrollY;
@@ -134,14 +133,11 @@ function initScrollZoom() {
       scrollCue.style.opacity = 1 - cueFadeProgress;
     }
 
-    // Fade in the overlay buttons near the end
+    // Reveal overlay when the face image reaches its final state
     if (faceOverlay) {
-      const fadeProgress = Math.max(
-        0,
-        Math.min(1, (progress - BUTTONS_FADE_START) / (1 - BUTTONS_FADE_START))
-      );
-      faceOverlay.style.opacity = fadeProgress;
-      if (fadeProgress > 0.05) {
+      const shouldShowOverlay = animationProgress >= OVERLAY_REVEAL_PROGRESS;
+      faceOverlay.style.opacity = shouldShowOverlay ? '1' : '0';
+      if (shouldShowOverlay) {
         faceOverlay.classList.add('visible');
       } else {
         faceOverlay.classList.remove('visible');
