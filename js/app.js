@@ -110,7 +110,7 @@ function initScrollZoom() {
     const blurPx = MAX_BLUR_PX * (1 - clarity);
     const opacity = MIN_OPACITY + (1 - MIN_OPACITY) * clarity;
     faceImg.style.filter = `blur(${blurPx}px)`;
-    faceImg.style.opacity = opacity.toFixed(3);
+    faceImg.style.opacity = opacity;
 
     // Fade in the overlay buttons near the end
     if (faceOverlay) {
