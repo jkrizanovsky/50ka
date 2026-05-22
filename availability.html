@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Máš čas?</title>
+  <title>Dotazník</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -16,20 +16,14 @@
 </head>
 <body>
 
-  <main class="availability-page">
-
-    <h1 class="availability-question chrome-text">
-      Máš&nbsp;čas&nbsp;12.&nbsp;9.&nbsp;2026?
-    </h1>
-
-    <div class="availability-buttons" role="group" aria-label="Odpovědi">
-      <button class="avail-btn btn-yes"   data-answer="ano">Ano</button>
-      <button class="avail-btn btn-no"    data-answer="ne">Ne</button>
-      <button class="avail-btn btn-maybe" data-answer="uvidime">Uvidíme</button>
-    </div>
-
-    <p id="confirm-message"></p>
-
+  <main class="availability-page questionnaire-page">
+    <section class="questionnaire-shell" aria-live="polite">
+      <header class="questionnaire-header">
+        <h1 class="availability-question chrome-text">Dotazník</h1>
+        <p class="questionnaire-subtitle">Vyplň prosím pár otázek a na konci se podepiš.</p>
+      </header>
+      <div id="questionnaire-flow" class="questionnaire-flow"></div>
+    </section>
   </main>
 
   <script src="js/app.js"></script>

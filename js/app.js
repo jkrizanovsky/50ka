@@ -198,20 +198,414 @@ function chooseRight() {
 /* ============================================================
    AVAILABILITY PAGE LOGIC
    ============================================================ */
-function initAvailabilityPage() {
-  const pageEl = document.querySelector('.availability-page');
-  if (!pageEl) return; // Not on this page
+const formSteps = {
+  1: {
+    question: 'Máš čas 12.9.2026?',
+    options: [
+      { text: 'Ano', reaction: 'To zní nadějně...', nextId: 2 },
+      { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 2 },
+      { text: 'Uvidíme', reaction: 'Snad tě přesvědčíme', nextId: 2 },
+    ],
+  },
+  2: {
+    question: 'Koho máš rád?',
+    description: 'Koho máš rád? S kým se chceš vidět?',
+    options: [
+      { text: 'Lenku', reaction: 'Neříkej to tak nahlas, Petr je žárlivej', nextId: 3 },
+      { text: 'Petra', reaction: 'Neříkej to tak nahlas, Lenka je žárlivá', nextId: 3 },
+      { text: 'Oba', reaction: 'Švédská trojka je fajn', nextId: 3 },
+      { text: 'Jen sebe', reaction: 'Zeptej se Csákové, proč tě nikdo nemá rád.', nextId: 3 },
+    ],
+  },
+  3: {
+    question: 'Přijdeš?',
+    description: 'Chceš se pořádně napít a najíst? A nevadí, že při tom uvidíš kromě L a P i další lidi?',
+    options: [
+      { text: 'Ano', reaction: 'Rádi tě uvidíme, co tě čeká si přečteš na konci.', nextId: 4 },
+      { text: 'Ne', reaction: 'Rozmysli si to, co by tě čekalo si přečteš na konci.', nextId: 98 },
+      { text: 'Uvidíme', reaction: 'Rozmysli si to, co by tě čekalo si přečteš na konci.', nextId: 4 },
+    ],
+  },
+  4: {
+    question: 'V kolik dorazíš?',
+    options: [
+      { text: 'odpoledne (14-16)', nextId: 5 },
+      { text: 'pozdní odpoledne (16-19)', nextId: 5 },
+      { text: 'večer (19-20)', nextId: 5 },
+      { text: 'To bude tajemství', nextId: 5 },
+    ],
+  },
+  5: {
+    question: 'Kolik vás přijde?',
+    options: [
+      { text: '1', reaction: 'Tady sám nebudeš!', nextId: 7 },
+      { text: '2', reaction: 'Takže poloviční zábava?', nextId: 6 },
+      { text: 'více', reaction: 'Dobře, vezměte si montérky...', nextId: 6 },
+    ],
+  },
+  6: {
+    question: 'Vezmeš i děti / vezmou tě děti?',
+    options: [
+      { text: 'Ano jedno', reaction: 'Jedno se ztratí...', nextId: 7 },
+      { text: 'Ano dvě nebo víc', reaction: 'Ztratí se všechny...', nextId: 7 },
+      { text: 'Vezmu sestřičku z děcáku', reaction: 'Správně, ale musí mít jen 18...', nextId: 7 },
+      { text: 'Vyrobíme až na místě', reaction: 'Správně, kondomy na místě nebudou', nextId: 7 },
+    ],
+  },
+  7: {
+    question: 'Co jíš?',
+    description: 'Abychom věděli co připravit (alergie?)',
+    options: [
+      { text: 'Jsem masožrout', reaction: 'Něco se pro tebe najde', nextId: 8 },
+      { text: 'Jsem kytkožrout', reaction: 'Něco se pro tebe najde', nextId: 8 },
+      { text: 'Vše co projde kolem', reaction: 'To abychom něco schovali', nextId: 8 },
+      { text: 'Žiju ze vzduchu', reaction: 'Správně, to je vítaný host!', nextId: 9 },
+    ],
+  },
+  8: {
+    question: 'Na jakém si pošmákneš?',
+    options: [
+      { text: 'Vepřo/hovězo', reaction: 'Pořádná prasečina/volovina', nextId: 9 },
+      { text: 'Drůbež', reaction: 'Pipka z VIPka', nextId: 9 },
+      { text: 'Ryba', reaction: 'Jestli budou brát, raději si přines', nextId: 9 },
+      { text: 'cokoli', reaction: 'Něco najdeme', nextId: 9 },
+    ],
+  },
+  9: {
+    question: 'Co piješ?',
+    options: [
+      { text: 'Pivo', reaction: 'Něco se pro tebe najde', nextId: 10 },
+      { text: 'Víno', reaction: 'Něco se pro tebe najde', nextId: 10 },
+      { text: 'Tvrdé', reaction: 'Něco málo se pro tebe najde', nextId: 10 },
+      { text: 'Nealko', reaction: 'Nedoporučuji to, ale něco se najde', nextId: 10 },
+    ],
+  },
+  10: {
+    question: 'Co posloucháš?',
+    options: [
+      { text: 'Rock', reaction: 'Něco se pro tebe najde', nextId: 11 },
+      { text: 'Metal', reaction: 'Něco se pro tebe najde', nextId: 11 },
+      { text: 'Punk', reaction: 'Něco se pro tebe najde', nextId: 11 },
+      { text: 'Dechmetal', reaction: 'Tak to budeš muset donést vlastní fujaru', nextId: 11 },
+    ],
+  },
+  11: {
+    question: 'Potřebuješ přespat?',
+    options: [
+      { text: 'Ve stanu', reaction: 'Na zahradě bude místa dost, stan vlastní', nextId: 12 },
+      { text: 'V posteli', reaction: 'Ubytovat se můžeš někde poblíž, odvoz zajistíme', nextId: 12 },
+      { text: 'Nepotřebuji', reaction: 'Skvělé, někdo soběstačný', nextId: 12 },
+      { text: 'Kdo by chodil spát?', reaction: 'Správně, domů Až ráno', nextId: 12 },
+    ],
+  },
+  12: {
+    question: 'Potřebuješ odvoz?',
+    description: 'Bude zajištěna kyvadlová doprava do Prachatic a blízkého okolí',
+    options: [
+      { text: 'Přijedu, zaparkuji u vás a pak odjedu', reaction: 'Hlavně při couvání nezbořit Pražákovi sloupek', nextId: 13 },
+      { text: 'Přivezou mne a odvezou - jako medvěda', reaction: 'Přivezou i odvezou - jako medvěda.', nextId: 13 },
+      { text: 'Odvoz by bodnul', reaction: 'Neboj, zajistíme (v nějaké rozumné vzdálenosti)', nextId: 97 },
+    ],
+  },
+  13: {
+    question: 'Potřebuješ snídani?',
+    options: [
+      { text: 'Snídaně hromadně', nextId: 97 },
+      { text: 'Snídaní až doma', nextId: 97 },
+    ],
+  },
+  97: {
+    type: 'info',
+    title: 'Hlavní instrukce',
+    content: `
+      <strong>Kde:</strong> Kulturák Běleč<br>
+      Běleč 66, 383 01 Těšovice - Běleč, Jihočeský kraj, Česko;<br>
+      <a href="https://mapy.cz/s/mekoragefe" target="_blank" rel="noopener noreferrer">Odkaz na mapu</a><br>
+      GPS: 49.0485053N, 14.0348231E<br><br>
+      <strong>Kdy:</strong> 12.9.2026 od 17:00<br><br>
+      <strong>Co:</strong> párty L+P. Čeká nás posezení v pohodlném prostředí, nějaké pivo, víno, občerstvení, reprodukovaná hudba...<br>
+      <strong>Co s sebou:</strong> Dobrou náladu! (Pokud spíš: stan, karimatku, spacák).<br>
+      Dary prosím nenos (játra si zničit nenecháme :-)).<br><br>
+      <p>Pro organizaci je důležité mít přehled, proto prosím dotazník vyplň svědomitě.</p>
+      <p>Tipy na ubytování v okolí: <a href="https://www.pthotel.cz" target="_blank" rel="noopener noreferrer">pthotel.cz</a>, <a href="https://www.hotelparkan.cz" target="_blank" rel="noopener noreferrer">hotelparkan.cz</a>...</p>
+    `,
+    nextBtnText: 'Pokračovat k dárkům',
+    nextId: 98,
+  },
+  98: {
+    question: 'Místo daru udělejme dobro. Ať už přijdeš nebo ne, dobro podpořit můžeš.',
+    options: [
+      { text: 'Děti (Arpida)', url: 'https://www.arpida.cz/nabizim-pomoc/jak-nas-podporit', nextId: 99 },
+      { text: 'Důchodci (Hospic)', url: 'https://www.hospicpt.cz/vase-pomoc/', nextId: 99 },
+      { text: 'Kočky', url: 'https://www.kockycb.cz/jak-nas-podporit/', nextId: 99 },
+    ],
+  },
+  99: {
+    type: 'finalForm',
+    title: 'Podepiš se :-)',
+    description: 'Formulář pro vložení jména, mailu a telefonu.',
+    fields: ['Jméno', 'Email', 'Telefon'],
+    submitBtnText: 'Odeslat',
+  },
+};
 
-  const buttons = pageEl.querySelectorAll('.avail-btn');
-  buttons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const answer = btn.dataset.answer;
-      saveAvailability(answer);
-    });
-  });
+const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
+
+function initAvailabilityPage() {
+  const flowEl = document.getElementById('questionnaire-flow');
+  if (!flowEl) return;
+
+  const state = {
+    answers: [],
+    completed: false,
+  };
+
+  const appendStep = (stepId) => {
+    const step = formSteps[stepId];
+    if (!step) return;
+
+    const card = document.createElement('article');
+    card.className = 'step-card';
+    card.dataset.stepId = String(stepId);
+
+    if (step.type === 'info') {
+      renderInfoStep(stepId, step, card, appendStep, state);
+    } else if (step.type === 'finalForm') {
+      renderFinalForm(stepId, step, card, state);
+    } else {
+      renderQuestionStep(stepId, step, card, appendStep, state);
+    }
+
+    flowEl.appendChild(card);
+    requestAnimationFrame(() => card.classList.add('visible'));
+    setTimeout(() => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
+  };
+
+  appendStep(1);
 }
 
-function saveAvailability(answer) {
+function renderQuestionStep(stepId, step, card, appendStep, state) {
+  const questionEl = document.createElement('h2');
+  questionEl.className = 'step-question';
+  questionEl.textContent = step.question;
+  card.appendChild(questionEl);
+
+  if (step.description) {
+    const descriptionEl = document.createElement('p');
+    descriptionEl.className = 'step-description';
+    descriptionEl.textContent = step.description;
+    card.appendChild(descriptionEl);
+  }
+
+  const optionsWrap = document.createElement('div');
+  optionsWrap.className = 'step-options';
+
+  const reactionEl = document.createElement('p');
+  reactionEl.className = 'step-reaction';
+
+  step.options.forEach((option) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'step-option-btn';
+    button.textContent = option.text;
+
+    button.addEventListener('click', () => {
+      if (button.disabled) return;
+
+      optionsWrap.querySelectorAll('.step-option-btn').forEach((btn) => {
+        btn.disabled = true;
+      });
+      button.classList.add('selected');
+
+      const answer = {
+        stepId,
+        question: step.question,
+        answer: option.text,
+        nextId: option.nextId ?? null,
+      };
+      if (option.url) answer.url = option.url;
+      state.answers.push(answer);
+      persistQuestionnaireState(state);
+
+      const reactionParts = [];
+      if (option.reaction) reactionParts.push(option.reaction);
+      if (option.url) {
+        const safeLinkText = option.url.replace(/^https?:\/\//i, '');
+        reactionParts.push(`<a href="${option.url}" target="_blank" rel="noopener noreferrer">${safeLinkText}</a>`);
+      }
+      if (reactionParts.length > 0) {
+        reactionEl.innerHTML = reactionParts.join('<br>');
+        reactionEl.classList.add('visible');
+      }
+
+      if (stepId === 1) {
+        saveLegacyAvailability(option.text);
+      }
+
+      if (option.nextId != null) {
+        const delay = reactionParts.length > 0 ? 700 : 220;
+        setTimeout(() => appendStep(option.nextId), delay);
+      }
+    });
+
+    optionsWrap.appendChild(button);
+  });
+
+  card.appendChild(optionsWrap);
+  card.appendChild(reactionEl);
+}
+
+function renderInfoStep(stepId, step, card, appendStep, state) {
+  const titleEl = document.createElement('h2');
+  titleEl.className = 'step-question';
+  titleEl.textContent = step.title;
+  card.appendChild(titleEl);
+
+  const contentEl = document.createElement('div');
+  contentEl.className = 'step-info-content';
+  contentEl.innerHTML = step.content;
+  card.appendChild(contentEl);
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'step-option-btn step-next-btn';
+  button.textContent = step.nextBtnText || 'Pokračovat';
+
+  button.addEventListener('click', () => {
+    if (button.disabled) return;
+    button.disabled = true;
+    button.classList.add('selected');
+
+    state.answers.push({
+      stepId,
+      question: step.title,
+      answer: button.textContent,
+      nextId: step.nextId ?? null,
+    });
+    persistQuestionnaireState(state);
+
+    if (step.nextId != null) {
+      setTimeout(() => appendStep(step.nextId), 220);
+    }
+  });
+
+  card.appendChild(button);
+}
+
+function renderFinalForm(stepId, step, card, state) {
+  const titleEl = document.createElement('h2');
+  titleEl.className = 'step-question';
+  titleEl.textContent = step.title;
+  card.appendChild(titleEl);
+
+  if (step.description) {
+    const descriptionEl = document.createElement('p');
+    descriptionEl.className = 'step-description';
+    descriptionEl.textContent = step.description;
+    card.appendChild(descriptionEl);
+  }
+
+  const form = document.createElement('form');
+  form.className = 'final-form';
+
+  step.fields.forEach((field) => {
+    const fieldWrap = document.createElement('label');
+    fieldWrap.className = 'final-form-field';
+
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = field;
+    fieldWrap.appendChild(labelSpan);
+
+    const input = document.createElement('input');
+    input.required = true;
+    input.name = field.toLowerCase();
+
+    if (field.toLowerCase().includes('mail')) {
+      input.type = 'email';
+      input.autocomplete = 'email';
+    } else if (field.toLowerCase().includes('telefon')) {
+      input.type = 'tel';
+      input.autocomplete = 'tel';
+    } else {
+      input.type = 'text';
+      input.autocomplete = 'name';
+    }
+
+    fieldWrap.appendChild(input);
+    form.appendChild(fieldWrap);
+  });
+
+  const submitBtn = document.createElement('button');
+  submitBtn.type = 'submit';
+  submitBtn.className = 'step-option-btn step-next-btn';
+  submitBtn.textContent = step.submitBtnText || 'Odeslat';
+  form.appendChild(submitBtn);
+
+  const statusEl = document.createElement('p');
+  statusEl.className = 'final-form-status';
+  form.appendChild(statusEl);
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (state.completed) return;
+
+    const formData = new FormData(form);
+    const contact = Object.fromEntries(formData.entries());
+    state.answers.push({
+      stepId,
+      question: step.title,
+      answer: 'odesláno',
+      fields: contact,
+      nextId: null,
+    });
+    state.completed = true;
+    persistQuestionnaireState(state);
+
+    const legacyAvailability = getLegacyAvailabilityValue(state.answers);
+    saveLegacyAvailabilityValue(legacyAvailability);
+
+    statusEl.textContent = 'Děkujeme, těšíme se na tebe!';
+    statusEl.classList.add('visible');
+    submitBtn.disabled = true;
+    form.querySelectorAll('input').forEach((input) => {
+      input.disabled = true;
+    });
+  });
+
+  card.appendChild(form);
+}
+
+function getLegacyAvailabilityValue(answers) {
+  const stepOneAnswer = answers.find((entry) => entry.stepId === 1)?.answer;
+  const normalized = (stepOneAnswer || '').toLowerCase();
+  if (normalized === 'ano') return 'ano';
+  if (normalized === 'ne') return 'ne';
+  if (normalized === 'uvidíme' || normalized === 'uvidime') return 'uvidime';
+  return 'uvidime';
+}
+
+function persistQuestionnaireState(state) {
+  localStorage.setItem(QUESTIONNAIRE_STORAGE_KEY, JSON.stringify({
+    userId: USER_ID,
+    choice: sessionStorage.getItem('50ka_choice') || 'unknown',
+    timestamp: new Date().toISOString(),
+    ...state,
+  }));
+}
+
+function saveLegacyAvailability(answerText) {
+  const normalized = String(answerText || '').toLowerCase();
+  const mapped = normalized === 'ano'
+    ? 'ano'
+    : normalized === 'ne'
+      ? 'ne'
+      : 'uvidime';
+  saveLegacyAvailabilityValue(mapped);
+}
+
+function saveLegacyAvailabilityValue(answer) {
   const choice  = sessionStorage.getItem('50ka_choice') || 'unknown';
   const payload = {
     userId:    USER_ID,
@@ -230,30 +624,6 @@ function saveAvailability(answer) {
     body:    JSON.stringify(payload),
   }).catch(() => {
     // Server not running — local storage is still saved
-  });
-
-  // Show confirmation
-  showConfirmation(answer);
-}
-
-function showConfirmation(answer) {
-  const msgEl = document.getElementById('confirm-message');
-  if (!msgEl) return;
-
-  const messages = {
-    ano:     'Super! Těšíme se na tebe! 🎉',
-    ne:      'Škoda! Budeme tě postrádat. 😢',
-    uvidime: 'Dej nám vědět, až budeš vědět! 😊',
-  };
-
-  msgEl.textContent = messages[answer] || 'Díky za odpověď!';
-  msgEl.classList.add('visible');
-
-  // Disable all buttons after answering
-  document.querySelectorAll('.avail-btn').forEach(b => {
-    b.disabled = true;
-    b.style.opacity = '0.5';
-    b.style.cursor  = 'default';
   });
 }
 
