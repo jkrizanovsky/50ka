@@ -445,10 +445,11 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       state.answers.push(answer);
       persistQuestionnaireState(state);
 
-      const safeLinkText = option.url
-        ? option.url.replace(/^https?:\/\//i, '')
-        : '';
-      const transitionText = option.reaction || (safeLinkText ? `Otevíráme: ${safeLinkText}` : '');
+      let transitionText = option.reaction || '';
+      if (!transitionText && option.url) {
+        const safeLinkText = option.url.replace(/^https?:\/\//i, '');
+        transitionText = `Otevíráme: ${safeLinkText}`;
+      }
 
       if (stepId === 1) {
         saveLegacyAvailability(option.text);
@@ -461,7 +462,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       if (option.nextId != null) {
         const goNext = () => showStep(option.nextId);
         if (transitionText) {
-          showQuestionnaireTransition(option.text, transitionText, goNext);
+          showQuestionnaireTransition('', transitionText, goNext);
         } else {
           setTimeout(goNext, 220);
         }
