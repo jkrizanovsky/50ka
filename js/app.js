@@ -495,8 +495,10 @@ function renderInfoStep(stepId, step, card, appendStep, state) {
 }
 
 function renderFinalForm(stepId, step, card, state) {
+  card.classList.add('final-form-card');
+
   const titleEl = document.createElement('h2');
-  titleEl.className = 'step-question';
+  titleEl.className = 'step-question availability-question';
   titleEl.textContent = step.title;
   card.appendChild(titleEl);
 
@@ -508,7 +510,7 @@ function renderFinalForm(stepId, step, card, state) {
   }
 
   const form = document.createElement('form');
-  form.className = 'final-form';
+  form.className = 'final-form availability-form';
 
   step.fields.forEach((field) => {
     const fieldWrap = document.createElement('label');
