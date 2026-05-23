@@ -390,7 +390,7 @@ const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
 function getSafeDisplayUrl(urlValue) {
   try {
     const parsed = new URL(urlValue);
-    return `${parsed.host}${parsed.pathname}`.replace(/\/$/, '');
+    return parsed.host;
   } catch {
     return '';
   }
@@ -460,7 +460,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       let transitionText = option.reaction || '';
       if (!transitionText && option.url) {
         const safeLinkText = getSafeDisplayUrl(option.url);
-        transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme odkaz...';
+        transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
       if (stepId === 1) {
