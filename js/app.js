@@ -384,6 +384,18 @@ function initAvailabilityPage() {
   showStep(1);
 }
 
+const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 900;
+const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
+
+function getSafeDisplayUrl(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return `${parsed.host}${parsed.pathname}`.replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+}
+
 function showQuestionnaireTransition(mainText, subText, onDone) {
   const overlay = document.getElementById('transition-overlay');
   const mainEl = document.getElementById('transition-main');
@@ -401,8 +413,8 @@ function showQuestionnaireTransition(mainText, subText, onDone) {
     overlay.classList.remove('active');
     setTimeout(() => {
       if (typeof onDone === 'function') onDone();
-    }, 220);
-  }, 900);
+    }, QUESTIONNAIRE_TRANSITION_FADE_MS);
+  }, QUESTIONNAIRE_TRANSITION_DISPLAY_MS);
 }
 
 function renderQuestionStep(stepId, step, card, showStep, state) {
@@ -447,8 +459,8 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
       let transitionText = option.reaction || '';
       if (!transitionText && option.url) {
-        const safeLinkText = option.url.replace(/^https?:\/\//i, '');
-        transitionText = `Otevíráme: ${safeLinkText}`;
+        const safeLinkText = getSafeDisplayUrl(option.url);
+        transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme odkaz...';
       }
 
       if (stepId === 1) {
@@ -464,7 +476,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         if (transitionText) {
           showQuestionnaireTransition('', transitionText, goNext);
         } else {
-          setTimeout(goNext, 220);
+          setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
         }
       }
     });
@@ -505,7 +517,7 @@ function renderInfoStep(stepId, step, card, showStep, state) {
     persistQuestionnaireState(state);
 
     if (step.nextId != null) {
-      setTimeout(() => showStep(step.nextId), 220);
+      setTimeout(() => showStep(step.nextId), QUESTIONNAIRE_TRANSITION_FADE_MS);
     }
   });
 
