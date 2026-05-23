@@ -455,6 +455,20 @@ body {
   gap: 0.7rem;
 }
 
+.final-form-card {
+  background: #ffffff;
+  border: none;
+  box-shadow: none;
+  padding: clamp(1.2rem, 4vw, 2.5rem) 0;
+  text-align: center;
+}
+
+.availability-form {
+  width: min(560px, 100%);
+  margin: 0 auto;
+  gap: 1rem;
+}
+
 .final-form-field {
   display: grid;
   gap: 0.25rem;
@@ -464,9 +478,9 @@ body {
 }
 
 .final-form-field input {
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 8px;
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.75rem;
   font-size: 1rem;
   font-family: 'Montserrat', Arial, sans-serif;
 }
