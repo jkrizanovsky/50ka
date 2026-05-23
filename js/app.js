@@ -378,7 +378,7 @@ function initAvailabilityPage() {
 
     flowEl.replaceChildren(card);
     requestAnimationFrame(() => card.classList.add('visible'));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   showStep(1);
@@ -388,9 +388,18 @@ const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 900;
 const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
 
 function getSafeDisplayUrl(urlValue) {
+  const safeUrl = getSafeExternalUrl(urlValue);
+  if (!safeUrl) return '';
+  const parsed = new URL(safeUrl);
+  return parsed.host;
+}
+
+function getSafeExternalUrl(urlValue) {
   try {
     const parsed = new URL(urlValue);
-    return parsed.host;
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+      ? parsed.href
+      : '';
   } catch {
     return '';
   }
@@ -458,8 +467,9 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       persistQuestionnaireState(state);
 
       let transitionText = option.reaction || '';
-      if (!transitionText && option.url) {
-        const safeLinkText = getSafeDisplayUrl(option.url);
+      const safeUrl = option.url ? getSafeExternalUrl(option.url) : '';
+      if (!transitionText && safeUrl) {
+        const safeLinkText = getSafeDisplayUrl(safeUrl);
         transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
@@ -467,8 +477,8 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         saveLegacyAvailability(option.text);
       }
 
-      if (option.url) {
-        window.open(option.url, '_blank', 'noopener,noreferrer');
+      if (safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
       }
 
       if (option.nextId != null) {
