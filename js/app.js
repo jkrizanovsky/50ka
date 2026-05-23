@@ -360,7 +360,7 @@ function initAvailabilityPage() {
     completed: false,
   };
 
-  const appendStep = (stepId) => {
+  const showStep = (stepId) => {
     const step = formSteps[stepId];
     if (!step) return;
 
@@ -369,24 +369,64 @@ function initAvailabilityPage() {
     card.dataset.stepId = String(stepId);
 
     if (step.type === 'info') {
-      renderInfoStep(stepId, step, card, appendStep, state);
+      renderInfoStep(stepId, step, card, showStep, state);
     } else if (step.type === 'finalForm') {
       renderFinalForm(stepId, step, card, state);
     } else {
-      renderQuestionStep(stepId, step, card, appendStep, state);
+      renderQuestionStep(stepId, step, card, showStep, state);
     }
 
-    flowEl.appendChild(card);
+    flowEl.replaceChildren(card);
     requestAnimationFrame(() => card.classList.add('visible'));
-    setTimeout(() => {
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  appendStep(1);
+  showStep(1);
 }
 
-function renderQuestionStep(stepId, step, card, appendStep, state) {
+const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 900;
+const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
+
+function getSafeDisplayUrl(urlValue) {
+  const safeUrl = getSafeExternalUrl(urlValue);
+  if (!safeUrl) return '';
+  const parsed = new URL(safeUrl);
+  return parsed.host;
+}
+
+function getSafeExternalUrl(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+      ? parsed.href
+      : '';
+  } catch {
+    return '';
+  }
+}
+
+function showQuestionnaireTransition(mainText, subText, onDone) {
+  const overlay = document.getElementById('transition-overlay');
+  const mainEl = document.getElementById('transition-main');
+  const subEl = document.getElementById('transition-sub');
+  if (!overlay || !mainEl || !subEl) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  mainEl.textContent = mainText || '';
+  subEl.textContent = subText || '';
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      if (typeof onDone === 'function') onDone();
+    }, QUESTIONNAIRE_TRANSITION_FADE_MS);
+  }, QUESTIONNAIRE_TRANSITION_DISPLAY_MS);
+}
+
+function renderQuestionStep(stepId, step, card, showStep, state) {
   const questionEl = document.createElement('h2');
   questionEl.className = 'step-question';
   questionEl.textContent = step.question;
@@ -401,9 +441,6 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
 
   const optionsWrap = document.createElement('div');
   optionsWrap.className = 'step-options';
-
-  const reactionEl = document.createElement('p');
-  reactionEl.className = 'step-reaction';
 
   step.options.forEach((option) => {
     const button = document.createElement('button');
@@ -429,24 +466,28 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
       state.answers.push(answer);
       persistQuestionnaireState(state);
 
-      const reactionParts = [];
-      if (option.reaction) reactionParts.push(option.reaction);
-      if (option.url) {
-        const safeLinkText = option.url.replace(/^https?:\/\//i, '');
-        reactionParts.push(`<a href="${option.url}" target="_blank" rel="noopener noreferrer">${safeLinkText}</a>`);
-      }
-      if (reactionParts.length > 0) {
-        reactionEl.innerHTML = reactionParts.join('<br>');
-        reactionEl.classList.add('visible');
+      let transitionText = option.reaction || '';
+      const safeUrl = option.url ? getSafeExternalUrl(option.url) : '';
+      if (!transitionText && safeUrl) {
+        const safeLinkText = getSafeDisplayUrl(safeUrl);
+        transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
       if (stepId === 1) {
         saveLegacyAvailability(option.text);
       }
 
+      if (safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
+      }
+
       if (option.nextId != null) {
-        const delay = reactionParts.length > 0 ? 700 : 220;
-        setTimeout(() => appendStep(option.nextId), delay);
+        const goNext = () => showStep(option.nextId);
+        if (transitionText) {
+          showQuestionnaireTransition('', transitionText, goNext);
+        } else {
+          setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
+        }
       }
     });
 
@@ -454,10 +495,9 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
   });
 
   card.appendChild(optionsWrap);
-  card.appendChild(reactionEl);
 }
 
-function renderInfoStep(stepId, step, card, appendStep, state) {
+function renderInfoStep(stepId, step, card, showStep, state) {
   const titleEl = document.createElement('h2');
   titleEl.className = 'step-question';
   titleEl.textContent = step.title;
@@ -487,7 +527,7 @@ function renderInfoStep(stepId, step, card, appendStep, state) {
     persistQuestionnaireState(state);
 
     if (step.nextId != null) {
-      setTimeout(() => appendStep(step.nextId), 220);
+      setTimeout(() => showStep(step.nextId), QUESTIONNAIRE_TRANSITION_FADE_MS);
     }
   });
 
