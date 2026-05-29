@@ -202,19 +202,9 @@ const formSteps = {
   1: {
     question: 'Máš čas 12.9.2026?',
     options: [
-      { text: 'Ano', reaction: 'To zní nadějně...', nextId: 2 },
-      { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 2 },
-      { text: 'Uvidíme', reaction: 'Snad tě přesvědčíme', nextId: 2 },
-    ],
-  },
-  2: {
-    question: 'Koho máš rád?',
-    description: 'Koho máš rád? S kým se chceš vidět?',
-    options: [
-      { text: 'Lenku', reaction: 'Neříkej to tak nahlas, Petr je žárlivej', nextId: 3 },
-      { text: 'Petra', reaction: 'Neříkej to tak nahlas, Lenka je žárlivá', nextId: 3 },
-      { text: 'Oba', reaction: 'Švédská trojka je fajn', nextId: 3 },
-      { text: 'Jen sebe', reaction: 'Zeptej se Csákové, proč tě nikdo nemá rád.', nextId: 3 },
+      { text: 'Ano', reaction: 'To zní nadějně...', nextId: 3 },
+      { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 3 },
+      { text: 'Uvidíme', reaction: 'Snad tě přesvědčíme', nextId: 3 },
     ],
   },
   3: {
@@ -384,7 +374,7 @@ function initAvailabilityPage() {
   showStep(1);
 }
 
-const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 900;
+const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
 const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
 
 function getSafeDisplayUrl(urlValue) {
@@ -466,6 +456,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       state.answers.push(answer);
       persistQuestionnaireState(state);
 
+      const transitionMainText = option.text || '';
       let transitionText = option.reaction || '';
       const safeUrl = option.url ? getSafeExternalUrl(option.url) : '';
       if (!transitionText && safeUrl) {
@@ -483,8 +474,8 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
       if (option.nextId != null) {
         const goNext = () => showStep(option.nextId);
-        if (transitionText) {
-          showQuestionnaireTransition('', transitionText, goNext);
+        if (transitionMainText || transitionText) {
+          showQuestionnaireTransition(transitionMainText, transitionText, goNext);
         } else {
           setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
         }
@@ -628,6 +619,18 @@ function getLegacyAvailabilityValue(answers) {
   return 'uvidime';
 }
 
+function getLegacyChoiceValue(choice) {
+  const map = {
+    left: 'lenku',
+    right: 'petra',
+    lenku: 'lenku',
+    petra: 'petra',
+    nezadano: 'nezadano',
+    unknown: 'nezadano',
+  };
+  return map[choice] || 'nezadano';
+}
+
 function persistQuestionnaireState(state) {
   localStorage.setItem(QUESTIONNAIRE_STORAGE_KEY, JSON.stringify({
     userId: USER_ID,
@@ -648,7 +651,7 @@ function saveLegacyAvailability(answerText) {
 }
 
 function saveLegacyAvailabilityValue(answer) {
-  const choice  = sessionStorage.getItem('50ka_choice') || 'unknown';
+  const choice = getLegacyChoiceValue(sessionStorage.getItem('50ka_choice'));
   const payload = {
     userId:    USER_ID,
     choice:    choice,

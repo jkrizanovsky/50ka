@@ -81,15 +81,25 @@ app.post('/api/response', writeLimiter, (req, res) => {
     return res.status(400).json({ error: 'Invalid userId' });
   }
 
-  const validChoices    = ['left', 'right', 'unknown', null, undefined];
+  const validChoices    = ['left', 'right', 'unknown', 'lenku', 'petra', 'nezadano', null, undefined];
   const validAvailable  = ['ano', 'ne', 'uvidime', null, undefined];
 
   if (!validChoices.includes(choice))   return res.status(400).json({ error: 'Invalid choice' });
   if (!validAvailable.includes(available)) return res.status(400).json({ error: 'Invalid available value' });
 
+  const choiceMap = {
+    left: 'lenku',
+    right: 'petra',
+    unknown: 'nezadano',
+    lenku: 'lenku',
+    petra: 'petra',
+    nezadano: 'nezadano',
+  };
+  const normalizedChoice = choiceMap[choice] || null;
+
   upsertStmt.run({
     userId:    userId,
-    choice:    choice    || null,
+    choice:    normalizedChoice || null,
     available: available || null,
     timestamp: timestamp || new Date().toISOString(),
   });
