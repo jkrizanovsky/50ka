@@ -620,9 +620,15 @@ function getLegacyAvailabilityValue(answers) {
 }
 
 function getLegacyChoiceValue(choice) {
-  if (choice === 'left') return 'lenku';
-  if (choice === 'right') return 'petra';
-  return 'nezadano';
+  const map = {
+    left: 'lenku',
+    right: 'petra',
+    lenku: 'lenku',
+    petra: 'petra',
+    nezadano: 'nezadano',
+    unknown: 'nezadano',
+  };
+  return map[choice] || 'nezadano';
 }
 
 function persistQuestionnaireState(state) {
