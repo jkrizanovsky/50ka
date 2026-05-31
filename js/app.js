@@ -35,36 +35,89 @@ const USER_ID = getOrCreateUserId();
 
 /* ============================================================
    CYCLING NUMBER IMAGE
-   Cycles between 50 → 25 → 100 every 700 ms
+   Cycles in number pattern 25 → 50 → 100 every 700 ms
+   while randomly picking a visual variant for each number.
    ============================================================ */
-const NUMBER_IMAGES = [
-  { src: 'images/50.svg',  alt: '50'  },
-  { src: 'images/25.svg',  alt: '25'  },
-  { src: 'images/100.svg', alt: '100' },
-];
+const NUMBER_SEQUENCE = ['25', '50', '100'];
+
+const NUMBER_VARIANTS = {
+  '25': [
+    'images/25.svg',
+    'images/25.png',
+    'images/25-01.png',
+    'images/25-02.png',
+    'images/25-03.png',
+    'images/25-04.png',
+    'images/25-05.png',
+    'images/25-06.png',
+    'images/25-07.png',
+    'images/25-08.png',
+    'images/25-09.png',
+  ],
+  '50': [
+    'images/50.svg',
+    'images/50.png',
+    'images/50-01.png',
+    'images/50-02.png',
+    'images/50-03.png',
+    'images/50-04.png',
+    'images/50-05.png',
+    'images/50-06.png',
+    'images/50-07.png',
+    'images/50-08.png',
+    'images/50-09.png',
+  ],
+  '100': [
+    'images/100.svg',
+    'images/100.png',
+    'images/100-01.png',
+    'images/100-02.png',
+    'images/100-03.png',
+    'images/100-04.png',
+    'images/100-05.png',
+    'images/100-06.png',
+    'images/100-07.png',
+    'images/100-08.png',
+    'images/100-09.png',
+  ],
+};
 
 let cycleIndex = 0;
+
+function pickRandomVariant(numberKey) {
+  const variants = NUMBER_VARIANTS[numberKey] || [];
+  if (variants.length === 0) return null;
+  const randomIndex = Math.floor(Math.random() * variants.length);
+  return { src: variants[randomIndex], alt: numberKey };
+}
 
 function initCyclingNumber() {
   const img = document.getElementById('cycling-img');
   if (!img) return;
 
   // Pre-load images so there's no flash on swap
-  NUMBER_IMAGES.forEach(({ src }) => {
+  Object.values(NUMBER_VARIANTS).flat().forEach((src) => {
     const preload = new Image();
     preload.src = src;
   });
 
+  const initial = pickRandomVariant(NUMBER_SEQUENCE[cycleIndex]);
+  if (initial) {
+    img.src = initial.src;
+    img.alt = initial.alt;
+  }
+
   setInterval(() => {
-    cycleIndex = (cycleIndex + 1) % NUMBER_IMAGES.length;
-    const { src, alt } = NUMBER_IMAGES[cycleIndex];
+    cycleIndex = (cycleIndex + 1) % NUMBER_SEQUENCE.length;
+    const next = pickRandomVariant(NUMBER_SEQUENCE[cycleIndex]);
+    if (!next) return;
 
     img.style.opacity = '0';
     img.style.transition = 'opacity 0.25s ease';
 
     setTimeout(() => {
-      img.src = src;
-      img.alt = alt;
+      img.src = next.src;
+      img.alt = next.alt;
       img.style.opacity = '1';
     }, 250);
   }, 700);
