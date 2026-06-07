@@ -45,6 +45,7 @@ body {
 #welcome {
   --scroll-cue-top: 68%;
   --scroll-cue-opacity: 0.55;
+  --title-number-height: clamp(2.8rem, 7vw, 7.5rem);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -64,11 +65,22 @@ body {
 }
 
 .title-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto calc(var(--title-number-height) * 1.6);
   align-items: center;
-  gap: 0.4em;
-  flex-wrap: wrap;
+  column-gap: 0.4em;
   justify-content: center;
+}
+
+.title-text-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.title-number-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .main-title {
@@ -83,11 +95,14 @@ body {
 .cycling-number {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 #cycling-img {
-  height: clamp(2.8rem, 7vw, 7.5rem);
-  width: auto;
+  height: var(--title-number-height);
+  width: 100%;
+  object-fit: contain;
+  object-position: left center;
   /* match same height as main title */
   display: block;
 }
@@ -183,6 +198,14 @@ body {
   height: 100%;
   object-fit: cover;
   object-position: center top;
+}
+
+.face-half:first-child {
+  object-position: right top;
+}
+
+.face-half:last-child {
+  object-position: left top;
 }
 
 /* ---------- Face overlay (buttons + question) ---------- */
@@ -531,13 +554,17 @@ body {
    RESPONSIVE
    ============================================================ */
 @media (max-width: 600px) {
+  #welcome {
+    --title-number-height: clamp(2rem, 11vw, 4rem);
+  }
+
   .main-title {
     font-size: clamp(2rem, 11vw, 4rem);
     letter-spacing: -1px;
   }
 
-  #cycling-img {
-    height: clamp(2rem, 11vw, 4rem);
+  .title-row {
+    grid-template-columns: auto calc(var(--title-number-height) * 1.6);
   }
 
   #scroll-cue {
