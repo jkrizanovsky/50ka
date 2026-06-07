@@ -228,17 +228,22 @@ body {
 
 .face-question {
   position: absolute;
-  top: 5%;
+  bottom: clamp(1.4rem, 4.5vh, 3rem);
   left: 50%;
   transform: translateX(-50%);
-  font-size: clamp(1.8rem, 4vw, 4rem);
+  font-size: clamp(1.3rem, 3vw, 2.15rem);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 2px 2px 0 rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.4px;
+  color: #111;
+  text-shadow: none;
+  background: #fff;
+  border: 3px solid #111;
+  box-shadow: 6px 6px 0 #111;
+  border-radius: 12px;
+  padding: 0.45em 0.95em;
   white-space: nowrap;
   pointer-events: none; /* text is "behind" buttons */
-  z-index: 5;
+  z-index: 15;
 }
 
 /* Split buttons — invisible, cover each half */
@@ -310,10 +315,12 @@ body {
    ============================================================ */
 .availability-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+  background: transparent;
   display: flex;
   justify-content: center;
   padding: clamp(1rem, 3vw, 2.5rem);
+  position: relative;
+  z-index: 1;
 }
 
 .questionnaire-page {
@@ -329,7 +336,7 @@ body {
   aspect-ratio: 8 / 5;
   pointer-events: none;
   /* Keep animated number behind questionnaire shell content. */
-  z-index: 1;
+  z-index: 0;
   will-change: transform;
 }
 
@@ -373,8 +380,11 @@ body {
 .questionnaire-flow {
   display: flex;
   flex: 1;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  width: 100%;
 }
 
 .step-card {
@@ -387,6 +397,26 @@ body {
   transform: translateY(16px);
   transition: opacity 0.35s ease, transform 0.35s ease;
   width: min(760px, 100%);
+}
+
+.step-illustration {
+  margin-top: auto;
+  width: clamp(140px, 20vw, 280px);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.step-illustration.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-illustration img {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .step-card.visible {
@@ -572,8 +602,11 @@ body {
   }
 
   .face-question {
-    font-size: 1.4rem;
+    font-size: 1.05rem;
     letter-spacing: 1px;
+    max-width: calc(100% - 1.5rem);
+    white-space: normal;
+    text-align: center;
   }
 
   .availability-buttons {
