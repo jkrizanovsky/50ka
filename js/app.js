@@ -394,6 +394,101 @@ const formSteps = {
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
 
+function initQuestionnaireNumberBouncer() {
+  const bouncerEl = document.getElementById('questionnaire-number-bouncer');
+  const imgEl = document.getElementById('questionnaire-number-bouncer-img');
+  if (!bouncerEl || !imgEl) return;
+
+  let posX = 0;
+  let posY = 0;
+  let velocityX = 1.7;
+  let velocityY = 1.7;
+  let variantIndex = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let animationFrameId = null;
+  let isActive = true;
+
+  function recalculateBounds() {
+    maxX = Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
+    maxY = Math.max(0, window.innerHeight - bouncerEl.offsetHeight);
+  }
+
+  function applyVariant() {
+    const numberKey = NUMBER_SEQUENCE[variantIndex];
+    const variant = pickRandomVariant(numberKey);
+    if (variant) {
+      imgEl.src = variant.src;
+      imgEl.alt = variant.alt;
+    }
+    variantIndex = (variantIndex + 1) % NUMBER_SEQUENCE.length;
+  }
+
+  function clampInViewport() {
+    recalculateBounds();
+    posX = Math.max(0, Math.min(posX, maxX));
+    posY = Math.max(0, Math.min(posY, maxY));
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+  }
+
+  function animate() {
+    if (!isActive) return;
+
+    posX += velocityX;
+    posY += velocityY;
+
+    let hasBounced = false;
+
+    if (posX <= 0) {
+      posX = 0;
+      velocityX = Math.abs(velocityX);
+      hasBounced = true;
+    } else if (posX >= maxX) {
+      posX = maxX;
+      velocityX = -Math.abs(velocityX);
+      hasBounced = true;
+    }
+
+    if (posY <= 0) {
+      posY = 0;
+      velocityY = Math.abs(velocityY);
+      hasBounced = true;
+    } else if (posY >= maxY) {
+      posY = maxY;
+      velocityY = -Math.abs(velocityY);
+      hasBounced = true;
+    }
+
+    if (hasBounced) {
+      applyVariant();
+    }
+
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+    animationFrameId = requestAnimationFrame(animate);
+  }
+
+  function cleanup() {
+    if (!isActive) return;
+    isActive = false;
+    window.removeEventListener('resize', clampInViewport);
+    window.removeEventListener('pagehide', cleanup);
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+    }
+  }
+
+  posX = Math.max(0, (window.innerWidth - bouncerEl.offsetWidth) / 2);
+  posY = Math.max(0, (window.innerHeight - bouncerEl.offsetHeight) / 2);
+  velocityX = Math.random() > 0.5 ? Math.abs(velocityX) : -Math.abs(velocityX);
+  velocityY = Math.random() > 0.5 ? Math.abs(velocityY) : -Math.abs(velocityY);
+  applyVariant();
+  clampInViewport();
+
+  window.addEventListener('resize', clampInViewport, { passive: true });
+  window.addEventListener('pagehide', cleanup);
+  animationFrameId = requestAnimationFrame(animate);
+}
+
 function initAvailabilityPage() {
   const flowEl = document.getElementById('questionnaire-flow');
   if (!flowEl) return;
@@ -731,5 +826,6 @@ function saveLegacyAvailabilityValue(answer) {
 document.addEventListener('DOMContentLoaded', () => {
   initCyclingNumber();
   initScrollZoom();
+  initQuestionnaireNumberBouncer();
   initAvailabilityPage();
 });
