@@ -394,6 +394,81 @@ const formSteps = {
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
 
+function initQuestionnaireNumberBouncer() {
+  const bouncerEl = document.getElementById('questionnaire-number-bouncer');
+  const imgEl = document.getElementById('questionnaire-number-bouncer-img');
+  if (!bouncerEl || !imgEl) return;
+
+  let posX = 0;
+  let posY = 0;
+  let velocityX = 1.7;
+  let velocityY = 1.7;
+  let variantIndex = 0;
+
+  function getMaxX() {
+    return Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
+  }
+
+  function getMaxY() {
+    return Math.max(0, window.innerHeight - bouncerEl.offsetHeight);
+  }
+
+  function applyVariant() {
+    const numberKey = NUMBER_SEQUENCE[variantIndex];
+    const variant = pickRandomVariant(numberKey);
+    if (variant) {
+      imgEl.src = variant.src;
+      imgEl.alt = variant.alt;
+    }
+    variantIndex = (variantIndex + 1) % NUMBER_SEQUENCE.length;
+  }
+
+  function clampInViewport() {
+    posX = Math.max(0, Math.min(posX, getMaxX()));
+    posY = Math.max(0, Math.min(posY, getMaxY()));
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+  }
+
+  function animate() {
+    posX += velocityX;
+    posY += velocityY;
+
+    const maxX = getMaxX();
+    const maxY = getMaxY();
+
+    if (posX <= 0) {
+      posX = 0;
+      velocityX = Math.abs(velocityX);
+    } else if (posX >= maxX) {
+      posX = maxX;
+      velocityX = -Math.abs(velocityX);
+    }
+
+    if (posY <= 0) {
+      posY = 0;
+      velocityY = Math.abs(velocityY);
+    } else if (posY >= maxY) {
+      posY = maxY;
+      velocityY = -Math.abs(velocityY);
+    }
+
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+    requestAnimationFrame(animate);
+  }
+
+  posX = Math.max(0, (window.innerWidth - bouncerEl.offsetWidth) / 2);
+  posY = Math.max(0, (window.innerHeight - bouncerEl.offsetHeight) / 2);
+  velocityX = Math.random() > 0.5 ? Math.abs(velocityX) : -Math.abs(velocityX);
+  velocityY = Math.random() > 0.5 ? Math.abs(velocityY) : -Math.abs(velocityY);
+
+  applyVariant();
+  setInterval(applyVariant, 700);
+  clampInViewport();
+
+  window.addEventListener('resize', clampInViewport, { passive: true });
+  requestAnimationFrame(animate);
+}
+
 function initAvailabilityPage() {
   const flowEl = document.getElementById('questionnaire-flow');
   if (!flowEl) return;
@@ -731,5 +806,6 @@ function saveLegacyAvailabilityValue(answer) {
 document.addEventListener('DOMContentLoaded', () => {
   initCyclingNumber();
   initScrollZoom();
+  initQuestionnaireNumberBouncer();
   initAvailabilityPage();
 });
