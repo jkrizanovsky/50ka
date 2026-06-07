@@ -404,13 +404,14 @@ function initQuestionnaireNumberBouncer() {
   let velocityX = 1.7;
   let velocityY = 1.7;
   let variantIndex = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let animationFrameId = null;
+  let isActive = true;
 
-  function getMaxX() {
-    return Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
-  }
-
-  function getMaxY() {
-    return Math.max(0, window.innerHeight - bouncerEl.offsetHeight);
+  function recalculateBounds() {
+    maxX = Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
+    maxY = Math.max(0, window.innerHeight - bouncerEl.offsetHeight);
   }
 
   function applyVariant() {
@@ -424,49 +425,68 @@ function initQuestionnaireNumberBouncer() {
   }
 
   function clampInViewport() {
-    posX = Math.max(0, Math.min(posX, getMaxX()));
-    posY = Math.max(0, Math.min(posY, getMaxY()));
+    recalculateBounds();
+    posX = Math.max(0, Math.min(posX, maxX));
+    posY = Math.max(0, Math.min(posY, maxY));
     bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
   }
 
   function animate() {
+    if (!isActive) return;
+
     posX += velocityX;
     posY += velocityY;
 
-    const maxX = getMaxX();
-    const maxY = getMaxY();
+    let hasBounced = false;
 
     if (posX <= 0) {
       posX = 0;
       velocityX = Math.abs(velocityX);
+      hasBounced = true;
     } else if (posX >= maxX) {
       posX = maxX;
       velocityX = -Math.abs(velocityX);
+      hasBounced = true;
     }
 
     if (posY <= 0) {
       posY = 0;
       velocityY = Math.abs(velocityY);
+      hasBounced = true;
     } else if (posY >= maxY) {
       posY = maxY;
       velocityY = -Math.abs(velocityY);
+      hasBounced = true;
+    }
+
+    if (hasBounced) {
+      applyVariant();
     }
 
     bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
-    requestAnimationFrame(animate);
+    animationFrameId = requestAnimationFrame(animate);
+  }
+
+  function cleanup() {
+    if (!isActive) return;
+    isActive = false;
+    window.removeEventListener('resize', clampInViewport);
+    window.removeEventListener('pagehide', cleanup);
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+    }
   }
 
   posX = Math.max(0, (window.innerWidth - bouncerEl.offsetWidth) / 2);
   posY = Math.max(0, (window.innerHeight - bouncerEl.offsetHeight) / 2);
   velocityX = Math.random() > 0.5 ? Math.abs(velocityX) : -Math.abs(velocityX);
   velocityY = Math.random() > 0.5 ? Math.abs(velocityY) : -Math.abs(velocityY);
-
   applyVariant();
-  setInterval(applyVariant, 700);
   clampInViewport();
 
   window.addEventListener('resize', clampInViewport, { passive: true });
-  requestAnimationFrame(animate);
+  window.addEventListener('pagehide', cleanup);
+  animationFrameId = requestAnimationFrame(animate);
 }
 
 function initAvailabilityPage() {

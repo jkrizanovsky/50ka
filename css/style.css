@@ -305,6 +305,7 @@ body {
   width: clamp(120px, 22vw, 300px);
   aspect-ratio: 8 / 5;
   pointer-events: none;
+  /* Keep animated number behind questionnaire shell content. */
   z-index: 1;
   will-change: transform;
 }
@@ -314,7 +315,7 @@ body {
   height: 100%;
   display: block;
   object-fit: contain;
-  filter: none !important;
+  filter: none;
 }
 
 .questionnaire-shell {
