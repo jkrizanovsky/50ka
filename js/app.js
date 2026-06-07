@@ -393,6 +393,36 @@ const formSteps = {
 };
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
+const STEP_ILLUSTRATIONS = {
+  1: {
+    src: 'images/noding_petr.png',
+    alt: 'Petr kývá hlavou',
+  },
+  3: {
+    src: 'images/thinking_lenka.png',
+    alt: 'Lenka přemýšlí',
+  },
+  5: {
+    src: 'images/peace_lenka.png',
+    alt: 'Lenka ukazuje peace',
+  },
+  7: {
+    src: 'images/pointing_petr.png',
+    alt: 'Petr ukazuje prstem',
+  },
+  9: {
+    src: 'images/pointing_lenka.png',
+    alt: 'Lenka ukazuje prstem',
+  },
+  10: {
+    src: 'images/winning_petr.png',
+    alt: 'Petr slaví vítězství',
+  },
+  12: {
+    src: 'images/thinking_petr.png',
+    alt: 'Petr přemýšlí',
+  },
+};
 
 function initQuestionnaireNumberBouncer() {
   const bouncerEl = document.getElementById('questionnaire-number-bouncer');
@@ -514,12 +544,42 @@ function initAvailabilityPage() {
       renderQuestionStep(stepId, step, card, showStep, state);
     }
 
-    flowEl.replaceChildren(card);
-    requestAnimationFrame(() => card.classList.add('visible'));
+    const illustration = createStepIllustration(stepId);
+    if (illustration) {
+      flowEl.replaceChildren(card, illustration);
+    } else {
+      flowEl.replaceChildren(card);
+    }
+
+    requestAnimationFrame(() => {
+      card.classList.add('visible');
+      if (illustration) {
+        illustration.classList.add('visible');
+      }
+    });
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
   showStep(1);
+}
+
+function createStepIllustration(stepId) {
+  const illustration = STEP_ILLUSTRATIONS[stepId];
+  if (!illustration) return null;
+
+  const figure = document.createElement('figure');
+  figure.className = 'step-illustration';
+
+  const image = document.createElement('img');
+  image.src = illustration.src;
+  image.alt = illustration.alt;
+  image.width = 720;
+  image.height = 720;
+  image.loading = 'lazy';
+  image.decoding = 'async';
+
+  figure.appendChild(image);
+  return figure;
 }
 
 const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
