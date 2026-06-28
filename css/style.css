@@ -246,6 +246,26 @@ body {
   z-index: 15;
 }
 
+.face-helper-hint {
+  position: absolute;
+  bottom: clamp(5.1rem, 10.5vh, 6.9rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
+  font-size: 1.5rem;
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+  pointer-events: none;
+  z-index: 16;
+  white-space: nowrap;
+}
+
+.face-helper-hint.visible {
+  opacity: 1;
+}
+
 /* Split buttons — invisible, cover each half */
 .half-btn {
   position: absolute;
@@ -539,6 +559,34 @@ html:has(body.questionnaire-locked) {
   color: #1f4f9a;
 }
 
+.fun-fact-box {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1.4rem, 4.5vh, 3rem);
+  width: min(420px, calc(100vw - 1.5rem));
+  transform: translate(-50%, 130%);
+  opacity: 0;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #111;
+  background: #fff;
+  border: 3px solid #111;
+  box-shadow: 6px 6px 0 #111;
+  border-radius: 12px;
+  padding: 0.45em 0.95em;
+  pointer-events: none;
+  z-index: 45;
+  transition: transform 0.45s ease, opacity 0.45s ease;
+  max-width: calc(100vw - 1.5rem);
+  text-align: center;
+}
+
+.fun-fact-box.visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
 .step-info-content {
   margin-top: 0.65rem;
   font-family: 'Montserrat', Arial, sans-serif;
@@ -624,6 +672,18 @@ html:has(body.questionnaire-locked) {
     max-width: calc(100% - 1.5rem);
     white-space: normal;
     text-align: center;
+  }
+
+  .face-helper-hint {
+    font-size: 1.05rem;
+    bottom: clamp(4.2rem, 10vh, 6.1rem);
+    white-space: normal;
+    text-align: center;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .fun-fact-box {
+    font-size: 1.05rem;
   }
 
   .availability-buttons {

@@ -32,6 +32,13 @@ function getOrCreateUserId() {
 }
 
 const USER_ID = getOrCreateUserId();
+let hasMadeFaceChoice = false;
+
+const FUN_FACT_PLACEHOLDERS = [
+  'Fun fact: sem přijde krátký zajímavý detail.',
+  'Fun fact: tady bude prostor pro další perličku.',
+  'Fun fact: později sem doplníme opravdový fakt.',
+];
 
 /* ============================================================
    CYCLING NUMBER IMAGE
@@ -134,6 +141,7 @@ function initScrollZoom() {
   const zoomZone   = document.getElementById('zoom-zone');
   const faceImg    = document.getElementById('face-img');
   const faceOverlay = document.getElementById('face-overlay');
+  const faceHelperHint = document.getElementById('face-helper-hint');
   const scrollCue = document.getElementById('scroll-cue');
   if (!zoomZone || !faceImg) return;
   if (!welcomeSection) {
@@ -150,6 +158,19 @@ function initScrollZoom() {
   const CUE_FADE_THRESHOLD = 0.22;
   const MIN_REVEAL_RANGE = 1;
   const OVERLAY_REVEAL_PROGRESS = 0.995;
+  const helperHintDelayMs = 3000;
+  let helperHintTimeoutId = null;
+  let helperHintArmed = false;
+
+  function hideHelperHint() {
+    if (faceHelperHint) {
+      faceHelperHint.classList.remove('visible');
+    }
+    if (helperHintTimeoutId !== null) {
+      clearTimeout(helperHintTimeoutId);
+      helperHintTimeoutId = null;
+    }
+  }
 
   function onScroll() {
     const scrollY    = window.scrollY;
@@ -192,13 +213,24 @@ function initScrollZoom() {
       faceOverlay.style.opacity = shouldShowOverlay ? 1 : 0;
       if (shouldShowOverlay) {
         faceOverlay.classList.add('visible');
+        if (faceHelperHint && !helperHintArmed) {
+          helperHintArmed = true;
+          helperHintTimeoutId = setTimeout(() => {
+            if (!hasMadeFaceChoice) {
+              faceHelperHint.classList.add('visible');
+            }
+          }, helperHintDelayMs);
+        }
       } else {
         faceOverlay.classList.remove('visible');
+        helperHintArmed = false;
+        hideHelperHint();
       }
     }
   }
 
   window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('pagehide', hideHelperHint, { once: true });
   // Run once on load in case page is already scrolled
   onScroll();
 }
@@ -230,6 +262,7 @@ function showTransitionThenNavigate(mainText, subText, destination) {
    BUTTON HANDLERS (called from HTML onclick)
    ============================================================ */
 function chooseLeft() {
+  hasMadeFaceChoice = true;
   // Save choice so availability page can log it with user ID
   sessionStorage.setItem('50ka_choice', 'left');
   showTransitionThenNavigate(
@@ -240,6 +273,7 @@ function chooseLeft() {
 }
 
 function chooseRight() {
+  hasMadeFaceChoice = true;
   sessionStorage.setItem('50ka_choice', 'right');
   showTransitionThenNavigate(
     'Ožerem seee!',
@@ -880,6 +914,31 @@ function saveLegacyAvailabilityValue(answer) {
   });
 }
 
+function initFunFactBox() {
+  if (document.getElementById('fun-fact-box')) return;
+  if (!document.body) return;
+
+  const factBox = document.createElement('p');
+  factBox.id = 'fun-fact-box';
+  factBox.className = 'fun-fact-box';
+  factBox.textContent = FUN_FACT_PLACEHOLDERS[Math.floor(Math.random() * FUN_FACT_PLACEHOLDERS.length)];
+
+  const referenceQuestion = document.querySelector('.face-question');
+  if (referenceQuestion) {
+    const referenceWidth = Math.round(referenceQuestion.getBoundingClientRect().width);
+    if (referenceWidth > 0) {
+      factBox.style.width = `${referenceWidth}px`;
+    }
+  }
+
+  document.body.appendChild(factBox);
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      factBox.classList.add('visible');
+    }, 50);
+  });
+}
+
 /* ============================================================
    BOOT
    ============================================================ */
@@ -888,4 +947,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollZoom();
   initQuestionnaireNumberBouncer();
   initAvailabilityPage();
+  initFunFactBox();
 });
