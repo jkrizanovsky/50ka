@@ -35,36 +35,89 @@ const USER_ID = getOrCreateUserId();
 
 /* ============================================================
    CYCLING NUMBER IMAGE
-   Cycles between 50 → 25 → 100 every 700 ms
+   Cycles in number pattern 25 → 50 → 100 every 700 ms
+   while randomly picking a visual variant for each number.
    ============================================================ */
-const NUMBER_IMAGES = [
-  { src: 'images/50.svg',  alt: '50'  },
-  { src: 'images/25.svg',  alt: '25'  },
-  { src: 'images/100.svg', alt: '100' },
-];
+const NUMBER_SEQUENCE = ['25', '50', '100'];
+
+const NUMBER_VARIANTS = {
+  '25': [
+    'images/25.svg',
+    'images/25.png',
+    'images/25-01.png',
+    'images/25-02.png',
+    'images/25-03.png',
+    'images/25-04.png',
+    'images/25-05.png',
+    'images/25-06.png',
+    'images/25-07.png',
+    'images/25-08.png',
+    'images/25-09.png',
+  ],
+  '50': [
+    'images/50.svg',
+    'images/50.png',
+    'images/50-01.png',
+    'images/50-02.png',
+    'images/50-03.png',
+    'images/50-04.png',
+    'images/50-05.png',
+    'images/50-06.png',
+    'images/50-07.png',
+    'images/50-08.png',
+    'images/50-09.png',
+  ],
+  '100': [
+    'images/100.svg',
+    'images/100.png',
+    'images/100-01.png',
+    'images/100-02.png',
+    'images/100-03.png',
+    'images/100-04.png',
+    'images/100-05.png',
+    'images/100-06.png',
+    'images/100-07.png',
+    'images/100-08.png',
+    'images/100-09.png',
+  ],
+};
 
 let cycleIndex = 0;
+
+function pickRandomVariant(numberKey) {
+  const variants = NUMBER_VARIANTS[numberKey] || [];
+  if (variants.length === 0) return null;
+  const randomIndex = Math.floor(Math.random() * variants.length);
+  return { src: variants[randomIndex], alt: numberKey };
+}
 
 function initCyclingNumber() {
   const img = document.getElementById('cycling-img');
   if (!img) return;
 
   // Pre-load images so there's no flash on swap
-  NUMBER_IMAGES.forEach(({ src }) => {
+  Object.values(NUMBER_VARIANTS).flat().forEach((src) => {
     const preload = new Image();
     preload.src = src;
   });
 
+  const initial = pickRandomVariant(NUMBER_SEQUENCE[cycleIndex]);
+  if (initial) {
+    img.src = initial.src;
+    img.alt = initial.alt;
+  }
+
   setInterval(() => {
-    cycleIndex = (cycleIndex + 1) % NUMBER_IMAGES.length;
-    const { src, alt } = NUMBER_IMAGES[cycleIndex];
+    cycleIndex = (cycleIndex + 1) % NUMBER_SEQUENCE.length;
+    const next = pickRandomVariant(NUMBER_SEQUENCE[cycleIndex]);
+    if (!next) return;
 
     img.style.opacity = '0';
     img.style.transition = 'opacity 0.25s ease';
 
     setTimeout(() => {
-      img.src = src;
-      img.alt = alt;
+      img.src = next.src;
+      img.alt = next.alt;
       img.style.opacity = '1';
     }, 250);
   }, 700);
@@ -202,19 +255,9 @@ const formSteps = {
   1: {
     question: 'Máš čas 12.9.2026?',
     options: [
-      { text: 'Ano', reaction: 'To zní nadějně...', nextId: 2 },
-      { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 2 },
-      { text: 'Uvidíme', reaction: 'Snad tě přesvědčíme', nextId: 2 },
-    ],
-  },
-  2: {
-    question: 'Koho máš rád?',
-    description: 'Koho máš rád? S kým se chceš vidět?',
-    options: [
-      { text: 'Lenku', reaction: 'Neříkej to tak nahlas, Petr je žárlivej', nextId: 3 },
-      { text: 'Petra', reaction: 'Neříkej to tak nahlas, Lenka je žárlivá', nextId: 3 },
-      { text: 'Oba', reaction: 'Švédská trojka je fajn', nextId: 3 },
-      { text: 'Jen sebe', reaction: 'Zeptej se Csákové, proč tě nikdo nemá rád.', nextId: 3 },
+      { text: 'Ano', reaction: 'To zní nadějně...', nextId: 3 },
+      { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 3 },
+      { text: 'Uvidíme', reaction: 'Snad tě přesvědčíme', nextId: 3 },
     ],
   },
   3: {
@@ -350,6 +393,131 @@ const formSteps = {
 };
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
+const STEP_ILLUSTRATIONS = {
+  1: {
+    src: 'images/noding_petr.png',
+    alt: 'Petr kývá hlavou',
+  },
+  3: {
+    src: 'images/thinking_lenka.png',
+    alt: 'Lenka přemýšlí',
+  },
+  5: {
+    src: 'images/peace_lenka.png',
+    alt: 'Lenka ukazuje peace',
+  },
+  7: {
+    src: 'images/pointing_petr.png',
+    alt: 'Petr ukazuje prstem',
+  },
+  9: {
+    src: 'images/pointing_lenka.png',
+    alt: 'Lenka ukazuje prstem',
+  },
+  10: {
+    src: 'images/winning_petr.png',
+    alt: 'Petr slaví vítězství',
+  },
+  12: {
+    src: 'images/thinking_petr.png',
+    alt: 'Petr přemýšlí',
+  },
+};
+
+function initQuestionnaireNumberBouncer() {
+  const bouncerEl = document.getElementById('questionnaire-number-bouncer');
+  const imgEl = document.getElementById('questionnaire-number-bouncer-img');
+  if (!bouncerEl || !imgEl) return;
+
+  let posX = 0;
+  let posY = 0;
+  let velocityX = 1.7;
+  let velocityY = 1.7;
+  let variantIndex = 0;
+  let maxX = 0;
+  let maxY = 0;
+  let animationFrameId = null;
+  let isActive = true;
+
+  function recalculateBounds() {
+    maxX = Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
+    maxY = Math.max(0, window.innerHeight - bouncerEl.offsetHeight);
+  }
+
+  function applyVariant() {
+    const numberKey = NUMBER_SEQUENCE[variantIndex];
+    const variant = pickRandomVariant(numberKey);
+    if (variant) {
+      imgEl.src = variant.src;
+      imgEl.alt = variant.alt;
+    }
+    variantIndex = (variantIndex + 1) % NUMBER_SEQUENCE.length;
+  }
+
+  function clampInViewport() {
+    recalculateBounds();
+    posX = Math.max(0, Math.min(posX, maxX));
+    posY = Math.max(0, Math.min(posY, maxY));
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+  }
+
+  function animate() {
+    if (!isActive) return;
+
+    posX += velocityX;
+    posY += velocityY;
+
+    let hasBounced = false;
+
+    if (posX <= 0) {
+      posX = 0;
+      velocityX = Math.abs(velocityX);
+      hasBounced = true;
+    } else if (posX >= maxX) {
+      posX = maxX;
+      velocityX = -Math.abs(velocityX);
+      hasBounced = true;
+    }
+
+    if (posY <= 0) {
+      posY = 0;
+      velocityY = Math.abs(velocityY);
+      hasBounced = true;
+    } else if (posY >= maxY) {
+      posY = maxY;
+      velocityY = -Math.abs(velocityY);
+      hasBounced = true;
+    }
+
+    if (hasBounced) {
+      applyVariant();
+    }
+
+    bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
+    animationFrameId = requestAnimationFrame(animate);
+  }
+
+  function cleanup() {
+    if (!isActive) return;
+    isActive = false;
+    window.removeEventListener('resize', clampInViewport);
+    window.removeEventListener('pagehide', cleanup);
+    if (animationFrameId !== null) {
+      cancelAnimationFrame(animationFrameId);
+    }
+  }
+
+  posX = Math.max(0, (window.innerWidth - bouncerEl.offsetWidth) / 2);
+  posY = Math.max(0, (window.innerHeight - bouncerEl.offsetHeight) / 2);
+  velocityX = Math.random() > 0.5 ? Math.abs(velocityX) : -Math.abs(velocityX);
+  velocityY = Math.random() > 0.5 ? Math.abs(velocityY) : -Math.abs(velocityY);
+  applyVariant();
+  clampInViewport();
+
+  window.addEventListener('resize', clampInViewport, { passive: true });
+  window.addEventListener('pagehide', cleanup);
+  animationFrameId = requestAnimationFrame(animate);
+}
 
 function initAvailabilityPage() {
   const flowEl = document.getElementById('questionnaire-flow');
@@ -360,7 +528,7 @@ function initAvailabilityPage() {
     completed: false,
   };
 
-  const appendStep = (stepId) => {
+  const showStep = (stepId) => {
     const step = formSteps[stepId];
     if (!step) return;
 
@@ -369,24 +537,94 @@ function initAvailabilityPage() {
     card.dataset.stepId = String(stepId);
 
     if (step.type === 'info') {
-      renderInfoStep(stepId, step, card, appendStep, state);
+      renderInfoStep(stepId, step, card, showStep, state);
     } else if (step.type === 'finalForm') {
       renderFinalForm(stepId, step, card, state);
     } else {
-      renderQuestionStep(stepId, step, card, appendStep, state);
+      renderQuestionStep(stepId, step, card, showStep, state);
     }
 
-    flowEl.appendChild(card);
-    requestAnimationFrame(() => card.classList.add('visible'));
-    setTimeout(() => {
-      card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 80);
+    const illustration = createStepIllustration(stepId);
+    if (illustration) {
+      flowEl.replaceChildren(card, illustration);
+    } else {
+      flowEl.replaceChildren(card);
+    }
+
+    requestAnimationFrame(() => {
+      card.classList.add('visible');
+      if (illustration) {
+        illustration.classList.add('visible');
+      }
+    });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  appendStep(1);
+  showStep(1);
 }
 
-function renderQuestionStep(stepId, step, card, appendStep, state) {
+function createStepIllustration(stepId) {
+  const illustration = STEP_ILLUSTRATIONS[stepId];
+  if (!illustration) return null;
+
+  const figure = document.createElement('figure');
+  figure.className = 'step-illustration';
+
+  const image = document.createElement('img');
+  image.src = illustration.src;
+  image.alt = illustration.alt;
+  image.width = 720;
+  image.height = 720;
+  image.loading = 'lazy';
+  image.decoding = 'async';
+
+  figure.appendChild(image);
+  return figure;
+}
+
+const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
+const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
+
+function getSafeDisplayUrl(urlValue) {
+  const safeUrl = getSafeExternalUrl(urlValue);
+  if (!safeUrl) return '';
+  const parsed = new URL(safeUrl);
+  return parsed.host;
+}
+
+function getSafeExternalUrl(urlValue) {
+  try {
+    const parsed = new URL(urlValue);
+    return (parsed.protocol === 'http:' || parsed.protocol === 'https:')
+      ? parsed.href
+      : '';
+  } catch {
+    return '';
+  }
+}
+
+function showQuestionnaireTransition(mainText, subText, onDone) {
+  const overlay = document.getElementById('transition-overlay');
+  const mainEl = document.getElementById('transition-main');
+  const subEl = document.getElementById('transition-sub');
+  if (!overlay || !mainEl || !subEl) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  mainEl.textContent = mainText || '';
+  subEl.textContent = subText || '';
+  overlay.classList.add('active');
+
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    setTimeout(() => {
+      if (typeof onDone === 'function') onDone();
+    }, QUESTIONNAIRE_TRANSITION_FADE_MS);
+  }, QUESTIONNAIRE_TRANSITION_DISPLAY_MS);
+}
+
+function renderQuestionStep(stepId, step, card, showStep, state) {
   const questionEl = document.createElement('h2');
   questionEl.className = 'step-question';
   questionEl.textContent = step.question;
@@ -401,9 +639,6 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
 
   const optionsWrap = document.createElement('div');
   optionsWrap.className = 'step-options';
-
-  const reactionEl = document.createElement('p');
-  reactionEl.className = 'step-reaction';
 
   step.options.forEach((option) => {
     const button = document.createElement('button');
@@ -429,24 +664,29 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
       state.answers.push(answer);
       persistQuestionnaireState(state);
 
-      const reactionParts = [];
-      if (option.reaction) reactionParts.push(option.reaction);
-      if (option.url) {
-        const safeLinkText = option.url.replace(/^https?:\/\//i, '');
-        reactionParts.push(`<a href="${option.url}" target="_blank" rel="noopener noreferrer">${safeLinkText}</a>`);
-      }
-      if (reactionParts.length > 0) {
-        reactionEl.innerHTML = reactionParts.join('<br>');
-        reactionEl.classList.add('visible');
+      const transitionMainText = option.text || '';
+      let transitionText = option.reaction || '';
+      const safeUrl = option.url ? getSafeExternalUrl(option.url) : '';
+      if (!transitionText && safeUrl) {
+        const safeLinkText = getSafeDisplayUrl(safeUrl);
+        transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
       if (stepId === 1) {
         saveLegacyAvailability(option.text);
       }
 
+      if (safeUrl) {
+        window.open(safeUrl, '_blank', 'noopener,noreferrer');
+      }
+
       if (option.nextId != null) {
-        const delay = reactionParts.length > 0 ? 700 : 220;
-        setTimeout(() => appendStep(option.nextId), delay);
+        const goNext = () => showStep(option.nextId);
+        if (transitionMainText || transitionText) {
+          showQuestionnaireTransition(transitionMainText, transitionText, goNext);
+        } else {
+          setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
+        }
       }
     });
 
@@ -454,10 +694,9 @@ function renderQuestionStep(stepId, step, card, appendStep, state) {
   });
 
   card.appendChild(optionsWrap);
-  card.appendChild(reactionEl);
 }
 
-function renderInfoStep(stepId, step, card, appendStep, state) {
+function renderInfoStep(stepId, step, card, showStep, state) {
   const titleEl = document.createElement('h2');
   titleEl.className = 'step-question';
   titleEl.textContent = step.title;
@@ -487,7 +726,7 @@ function renderInfoStep(stepId, step, card, appendStep, state) {
     persistQuestionnaireState(state);
 
     if (step.nextId != null) {
-      setTimeout(() => appendStep(step.nextId), 220);
+      setTimeout(() => showStep(step.nextId), QUESTIONNAIRE_TRANSITION_FADE_MS);
     }
   });
 
@@ -495,8 +734,10 @@ function renderInfoStep(stepId, step, card, appendStep, state) {
 }
 
 function renderFinalForm(stepId, step, card, state) {
+  card.classList.add('final-form-card');
+
   const titleEl = document.createElement('h2');
-  titleEl.className = 'step-question';
+  titleEl.className = 'step-question availability-question';
   titleEl.textContent = step.title;
   card.appendChild(titleEl);
 
@@ -508,7 +749,7 @@ function renderFinalForm(stepId, step, card, state) {
   }
 
   const form = document.createElement('form');
-  form.className = 'final-form';
+  form.className = 'final-form availability-form';
 
   step.fields.forEach((field) => {
     const fieldWrap = document.createElement('label');
@@ -586,6 +827,18 @@ function getLegacyAvailabilityValue(answers) {
   return 'uvidime';
 }
 
+function getLegacyChoiceValue(choice) {
+  const map = {
+    left: 'lenku',
+    right: 'petra',
+    lenku: 'lenku',
+    petra: 'petra',
+    nezadano: 'nezadano',
+    unknown: 'nezadano',
+  };
+  return map[choice] || 'nezadano';
+}
+
 function persistQuestionnaireState(state) {
   localStorage.setItem(QUESTIONNAIRE_STORAGE_KEY, JSON.stringify({
     userId: USER_ID,
@@ -606,7 +859,7 @@ function saveLegacyAvailability(answerText) {
 }
 
 function saveLegacyAvailabilityValue(answer) {
-  const choice  = sessionStorage.getItem('50ka_choice') || 'unknown';
+  const choice = getLegacyChoiceValue(sessionStorage.getItem('50ka_choice'));
   const payload = {
     userId:    USER_ID,
     choice:    choice,
@@ -633,5 +886,6 @@ function saveLegacyAvailabilityValue(answer) {
 document.addEventListener('DOMContentLoaded', () => {
   initCyclingNumber();
   initScrollZoom();
+  initQuestionnaireNumberBouncer();
   initAvailabilityPage();
 });

@@ -45,6 +45,7 @@ body {
 #welcome {
   --scroll-cue-top: 68%;
   --scroll-cue-opacity: 0.55;
+  --title-number-height: clamp(2.8rem, 7vw, 7.5rem);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -64,11 +65,22 @@ body {
 }
 
 .title-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto calc(var(--title-number-height) * 1.6);
   align-items: center;
-  gap: 0.4em;
-  flex-wrap: wrap;
+  column-gap: 0.4em;
   justify-content: center;
+}
+
+.title-text-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.title-number-container {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .main-title {
@@ -83,11 +95,14 @@ body {
 .cycling-number {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 #cycling-img {
-  height: clamp(2.8rem, 7vw, 7.5rem);
-  width: auto;
+  height: var(--title-number-height);
+  width: 100%;
+  object-fit: contain;
+  object-position: left center;
   /* match same height as main title */
   display: block;
 }
@@ -190,6 +205,14 @@ body {
   object-position: center top;
 }
 
+.face-half:first-child {
+  object-position: right top;
+}
+
+.face-half:last-child {
+  object-position: left top;
+}
+
 /* ---------- Face overlay (buttons + question) ---------- */
 #face-overlay {
   position: absolute;
@@ -211,16 +234,22 @@ body {
 .face-question {
   position: absolute;
   top: max(12px, calc((var(--face-question-zone) - 1em) / 2));
+  bottom: clamp(1.4rem, 4.5vh, 3rem);
   left: 50%;
   transform: translateX(-50%);
-  font-size: clamp(1.8rem, 4vw, 4rem);
+  font-size: clamp(1.3rem, 3vw, 2.15rem);
   text-transform: uppercase;
-  letter-spacing: 2px;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 0 20px rgba(0, 0, 0, 0.8), 2px 2px 0 rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.4px;
+  color: #111;
+  text-shadow: none;
+  background: #fff;
+  border: 3px solid #111;
+  box-shadow: 6px 6px 0 #111;
+  border-radius: 12px;
+  padding: 0.45em 0.95em;
   white-space: nowrap;
   pointer-events: none; /* text is "behind" buttons */
-  z-index: 5;
+  z-index: 15;
 }
 
 /* Split buttons — invisible, cover each half */
@@ -292,10 +321,37 @@ body {
    ============================================================ */
 .availability-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #ffffff 0%, #f4f4f4 100%);
+  background: transparent;
   display: flex;
   justify-content: center;
   padding: clamp(1rem, 3vw, 2.5rem);
+  position: relative;
+  z-index: 1;
+}
+
+.questionnaire-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.questionnaire-number-bouncer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: clamp(120px, 22vw, 300px);
+  aspect-ratio: 8 / 5;
+  pointer-events: none;
+  /* Keep animated number behind questionnaire shell content. */
+  z-index: 0;
+  will-change: transform;
+}
+
+.questionnaire-number-bouncer img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: none;
 }
 
 .questionnaire-shell {
@@ -304,6 +360,9 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: calc(100vh - clamp(2rem, 6vw, 5rem));
+  position: relative;
+  z-index: 2;
 }
 
 .questionnaire-header {
@@ -326,8 +385,13 @@ body {
 
 .questionnaire-flow {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 100%;
 }
 
 .step-card {
@@ -339,6 +403,33 @@ body {
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.35s ease, transform 0.35s ease;
+  width: min(760px, 100%);
+}
+
+.step-illustration {
+  margin-top: auto;
+  width: clamp(180px, 22vw, 300px);
+  height: clamp(260px, 36vh, 420px);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.step-illustration.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-illustration img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .step-card.visible {
@@ -460,6 +551,20 @@ body {
   gap: 0.7rem;
 }
 
+.final-form-card {
+  background: #ffffff;
+  border: none;
+  box-shadow: none;
+  padding: clamp(1.2rem, 4vw, 2.5rem) 0;
+  text-align: center;
+}
+
+.availability-form {
+  width: min(560px, 100%);
+  margin: 0 auto;
+  gap: 1rem;
+}
+
 .final-form-field {
   display: grid;
   gap: 0.25rem;
@@ -469,9 +574,9 @@ body {
 }
 
 .final-form-field input {
-  border: 2px solid #111;
+  border: 3px solid #111;
   border-radius: 8px;
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.75rem;
   font-size: 1rem;
   font-family: 'Montserrat', Arial, sans-serif;
 }
@@ -496,6 +601,8 @@ body {
     --face-question-zone: clamp(66px, 18vh, 120px);
     --face-question-gap: clamp(20px, 5vw, 30px);
     --face-image-scale: 1.04;
+  #welcome {
+    --title-number-height: clamp(2rem, 11vw, 4rem);
   }
 
   .main-title {
@@ -503,8 +610,8 @@ body {
     letter-spacing: -1px;
   }
 
-  #cycling-img {
-    height: clamp(2rem, 11vw, 4rem);
+  .title-row {
+    grid-template-columns: auto calc(var(--title-number-height) * 1.6);
   }
 
   #scroll-cue {
@@ -512,8 +619,11 @@ body {
   }
 
   .face-question {
-    font-size: 1.4rem;
+    font-size: 1.05rem;
     letter-spacing: 1px;
+    max-width: calc(100% - 1.5rem);
+    white-space: normal;
+    text-align: center;
   }
 
   .availability-buttons {

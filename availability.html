@@ -15,6 +15,16 @@
   <link rel="stylesheet" href="css/style.css"/>
 </head>
 <body>
+  <div id="questionnaire-number-bouncer" class="questionnaire-number-bouncer" aria-hidden="true">
+    <img
+      id="questionnaire-number-bouncer-img"
+      src="images/25.png"
+      alt=""
+      width="320"
+      height="200"
+      decoding="async"
+    />
+  </div>
 
   <main class="availability-page questionnaire-page">
     <section class="questionnaire-shell" aria-live="polite">
@@ -25,6 +35,11 @@
       <div id="questionnaire-flow" class="questionnaire-flow"></div>
     </section>
   </main>
+
+  <div id="transition-overlay" aria-live="polite">
+    <span id="transition-main" class="transition-main chrome-text"></span>
+    <span id="transition-sub" class="transition-sub"></span>
+  </div>
 
   <script src="js/app.js"></script>
 </body>
