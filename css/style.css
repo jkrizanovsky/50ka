@@ -161,6 +161,9 @@ body {
 
 #face-sticky {
   --face-start-blur: 18px;
+  --face-question-zone: clamp(72px, 15vh, 160px);
+  --face-question-gap: clamp(24px, 3vw, 30px);
+  --face-image-scale: 1.08;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -173,12 +176,12 @@ body {
 
 #face-img-wrapper {
   position: absolute;
-  top: 0;
+  top: calc(var(--face-question-zone) + var(--face-question-gap));
   left: 0;
   width: 100%;
-  height: 100%;
+  height: max(0px, calc(100% - (var(--face-question-zone) + var(--face-question-gap))));
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   will-change: transform;
 }
@@ -188,6 +191,8 @@ body {
   height: 100%;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  transform: scale(var(--face-image-scale));
+  transform-origin: center top;
   opacity: 0;
   filter: blur(var(--face-start-blur));
   will-change: opacity, filter;
@@ -228,6 +233,7 @@ body {
 
 .face-question {
   position: absolute;
+  top: max(12px, calc((var(--face-question-zone) - 1em) / 2));
   bottom: clamp(1.4rem, 4.5vh, 3rem);
   left: 50%;
   transform: translateX(-50%);
@@ -591,6 +597,10 @@ body {
    RESPONSIVE
    ============================================================ */
 @media (max-width: 600px) {
+  #face-sticky {
+    --face-question-zone: clamp(66px, 18vh, 120px);
+    --face-question-gap: clamp(20px, 5vw, 30px);
+    --face-image-scale: 1.04;
   #welcome {
     --title-number-height: clamp(2rem, 11vw, 4rem);
   }
