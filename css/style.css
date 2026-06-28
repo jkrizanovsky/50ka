@@ -319,12 +319,24 @@ body {
 /* ============================================================
    AVAILABILITY PAGE
    ============================================================ */
+
+/* Screen-lock for questionnaire pages — no scroll */
+body.questionnaire-locked {
+  overflow: hidden;
+  height: 100vh;
+}
+
+html:has(body.questionnaire-locked) {
+  overflow: hidden;
+}
+
 .availability-page {
-  min-height: 100vh;
+  height: 100vh;
   background: transparent;
   display: flex;
   justify-content: center;
   padding: clamp(1rem, 3vw, 2.5rem);
+  padding-bottom: 0;
   position: relative;
   z-index: 1;
 }
@@ -360,7 +372,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  min-height: calc(100vh - clamp(2rem, 6vw, 5rem));
+  height: 100%;
   position: relative;
   z-index: 2;
 }
@@ -388,10 +400,9 @@ body {
   flex: 1;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
+  justify-content: flex-start;
+  gap: 25px;
   width: 100%;
-  min-height: 100%;
 }
 
 .step-card {
@@ -407,9 +418,8 @@ body {
 }
 
 .step-illustration {
-  margin-top: auto;
-  width: clamp(180px, 22vw, 300px);
-  height: clamp(260px, 36vh, 420px);
+  flex: 1;
+  width: min(600px, 100%);
   pointer-events: none;
   opacity: 0;
   transform: translateY(16px);
@@ -417,6 +427,7 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  overflow: hidden;
 }
 
 .step-illustration.visible {
