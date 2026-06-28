@@ -382,9 +382,10 @@ body {
   flex: 1;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
   gap: 0.75rem;
   width: 100%;
+  min-height: 100%;
 }
 
 .step-card {
@@ -401,11 +402,15 @@ body {
 
 .step-illustration {
   margin-top: auto;
-  width: clamp(140px, 20vw, 280px);
+  width: clamp(180px, 22vw, 300px);
+  height: clamp(260px, 36vh, 420px);
   pointer-events: none;
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.35s ease, transform 0.35s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
 
 .step-illustration.visible {
@@ -415,8 +420,10 @@ body {
 
 .step-illustration img {
   width: 100%;
-  height: auto;
+  height: 100%;
   display: block;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .step-card.visible {
