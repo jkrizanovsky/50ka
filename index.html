@@ -85,7 +85,12 @@
            The question text has pointer-events: none so clicks
            pass through to the buttons beneath it. -->
       <div id="face-overlay" role="region" aria-label="Výběr strany">
-        <p id="face-helper-hint" class="face-helper-hint">klikněte na polovinu obličeje</p>
+        <p
+          id="face-helper-hint"
+          class="face-helper-hint"
+          aria-live="polite"
+          aria-label="klikněte na polovinu obličeje"
+        >klikněte na polovinu obličeje</p>
 
         <h2 class="face-question">Koho&nbsp;máš&nbsp;raději?</h2>
 

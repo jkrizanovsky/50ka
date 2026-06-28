@@ -33,6 +33,7 @@ function getOrCreateUserId() {
 
 const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
+let hasInitializedFunFactBox = false;
 
 const FUN_FACT_PLACEHOLDERS = [
   'Fun fact: sem přijde krátký zajímavý detail.',
@@ -158,7 +159,8 @@ function initScrollZoom() {
   const CUE_FADE_THRESHOLD = 0.22;
   const MIN_REVEAL_RANGE = 1;
   const OVERLAY_REVEAL_PROGRESS = 0.995;
-  const helperHintDelayMs = 3000;
+  const HELPER_HINT_DELAY_MS = 3000;
+  const scrollListenerOptions = { passive: true };
   let helperHintTimeoutId = null;
   let helperHintArmed = false;
 
@@ -219,7 +221,7 @@ function initScrollZoom() {
             if (!hasMadeFaceChoice) {
               faceHelperHint.classList.add('visible');
             }
-          }, helperHintDelayMs);
+          }, HELPER_HINT_DELAY_MS);
         }
       } else {
         faceOverlay.classList.remove('visible');
@@ -229,8 +231,14 @@ function initScrollZoom() {
     }
   }
 
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('pagehide', hideHelperHint, { once: true });
+  function cleanupScrollZoom() {
+    hideHelperHint();
+    window.removeEventListener('scroll', onScroll, scrollListenerOptions);
+    window.removeEventListener('pagehide', cleanupScrollZoom);
+  }
+
+  window.addEventListener('scroll', onScroll, scrollListenerOptions);
+  window.addEventListener('pagehide', cleanupScrollZoom);
   // Run once on load in case page is already scrolled
   onScroll();
 }
@@ -915,7 +923,7 @@ function saveLegacyAvailabilityValue(answer) {
 }
 
 function initFunFactBox() {
-  if (document.getElementById('fun-fact-box')) return;
+  if (hasInitializedFunFactBox) return;
   if (!document.body) return;
 
   const factBox = document.createElement('p');
@@ -923,19 +931,10 @@ function initFunFactBox() {
   factBox.className = 'fun-fact-box';
   factBox.textContent = FUN_FACT_PLACEHOLDERS[Math.floor(Math.random() * FUN_FACT_PLACEHOLDERS.length)];
 
-  const referenceQuestion = document.querySelector('.face-question');
-  if (referenceQuestion) {
-    const referenceWidth = Math.round(referenceQuestion.getBoundingClientRect().width);
-    if (referenceWidth > 0) {
-      factBox.style.width = `${referenceWidth}px`;
-    }
-  }
-
   document.body.appendChild(factBox);
+  hasInitializedFunFactBox = true;
   requestAnimationFrame(() => {
-    setTimeout(() => {
-      factBox.classList.add('visible');
-    }, 50);
+    factBox.classList.add('visible');
   });
 }
 

@@ -560,10 +560,12 @@ html:has(body.questionnaire-locked) {
 }
 
 .fun-fact-box {
+  --fun-fact-preferred-width: 420px;
+  --fun-fact-max-width: calc(100vw - 1.5rem);
   position: fixed;
   left: 50%;
   bottom: clamp(1.4rem, 4.5vh, 3rem);
-  width: min(420px, calc(100vw - 1.5rem));
+  width: min(var(--fun-fact-preferred-width), var(--fun-fact-max-width));
   transform: translate(-50%, 130%);
   opacity: 0;
   font-size: 1.5rem;
@@ -578,7 +580,6 @@ html:has(body.questionnaire-locked) {
   pointer-events: none;
   z-index: 45;
   transition: transform 0.45s ease, opacity 0.45s ease;
-  max-width: calc(100vw - 1.5rem);
   text-align: center;
 }
 
