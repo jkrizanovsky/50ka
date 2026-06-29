@@ -400,7 +400,7 @@ const formSteps = {
   98: {
     question: 'Místo daru udělejme dobro. Ať už přijdeš nebo ne, dobro podpořit můžeš.',
     options: [
-      { text: 'Děti (Arpida)', url: 'https://www.arpida.cz/nabizim-pomoc/jak-nas-podporit', nextId: 99 },
+      { text: 'Děti (Arpida)', url: 'https://www.arpida.cz/nabizim-pomoc/jak-nas-podporit-2', nextId: 99 },
       { text: 'Důchodci (Hospic)', url: 'https://www.hospicpt.cz/vase-pomoc/', nextId: 99 },
       { text: 'Kočky', url: 'https://www.kockycb.cz/jak-nas-podporit/', nextId: 99 },
     ],
@@ -431,6 +431,10 @@ const STEP_ILLUSTRATIONS = {
   5: {
     src: 'images/peace_lenka.png',
     alt: 'Lenka ukazuje peace',
+  },
+  6: {
+    src: 'images/kid.gif',
+    alt: 'Dítě',
   },
   7: {
     src: 'images/pointing_petr.png',
@@ -751,6 +755,14 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
+      if (option.reaction) {
+        const reactionEl = card.querySelector('.step-reaction');
+        if (reactionEl) {
+          reactionEl.textContent = option.reaction;
+          reactionEl.classList.add('visible');
+        }
+      }
+
       if (stepId === 1) {
         saveLegacyAvailability(option.text);
       }
@@ -773,6 +785,10 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
   });
 
   card.appendChild(optionsWrap);
+
+  const reactionEl = document.createElement('p');
+  reactionEl.className = 'step-reaction';
+  card.appendChild(reactionEl);
 }
 
 function renderInfoStep(stepId, step, card, showStep, state) {
