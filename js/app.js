@@ -33,13 +33,6 @@ function getOrCreateUserId() {
 
 const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
-let hasInitializedFunFactBox = false;
-
-const FUN_FACT_PLACEHOLDERS = [
-  'Fun fact: sem přijde krátký zajímavý detail.',
-  'Fun fact: tady bude prostor pro další perličku.',
-  'Fun fact: později sem doplníme opravdový fakt.',
-];
 
 /* ============================================================
    CYCLING NUMBER IMAGE
@@ -159,18 +152,10 @@ function initScrollZoom() {
   const CUE_FADE_THRESHOLD = 0.22;
   const MIN_REVEAL_RANGE = 1;
   const OVERLAY_REVEAL_PROGRESS = 0.995;
-  const HELPER_HINT_DELAY_MS = 3000;
   const scrollListenerOptions = { passive: true };
-  let helperHintTimeoutId = null;
-  let helperHintArmed = false;
-
   function hideHelperHint() {
     if (faceHelperHint) {
       faceHelperHint.classList.remove('visible');
-    }
-    if (helperHintTimeoutId !== null) {
-      clearTimeout(helperHintTimeoutId);
-      helperHintTimeoutId = null;
     }
   }
 
@@ -215,17 +200,11 @@ function initScrollZoom() {
       faceOverlay.style.opacity = shouldShowOverlay ? 1 : 0;
       if (shouldShowOverlay) {
         faceOverlay.classList.add('visible');
-        if (faceHelperHint && !helperHintArmed) {
-          helperHintArmed = true;
-          helperHintTimeoutId = setTimeout(() => {
-            if (!hasMadeFaceChoice) {
-              faceHelperHint.classList.add('visible');
-            }
-          }, HELPER_HINT_DELAY_MS);
+        if (faceHelperHint && !hasMadeFaceChoice) {
+          faceHelperHint.classList.add('visible');
         }
       } else {
         faceOverlay.classList.remove('visible');
-        helperHintArmed = false;
         hideHelperHint();
       }
     }
@@ -274,7 +253,7 @@ function chooseLeft() {
   // Save choice so availability page can log it with user ID
   sessionStorage.setItem('50ka_choice', 'left');
   showTransitionThenNavigate(
-    'GIRLIE PARTYYY',
+    'kočky mají pré',
     'ale neříkej to nahlas aby Petr nežárlil...',
     'availability.html'
   );
@@ -284,7 +263,7 @@ function chooseRight() {
   hasMadeFaceChoice = true;
   sessionStorage.setItem('50ka_choice', 'right');
   showTransitionThenNavigate(
-    'Ožerem seee!',
+    'kocouři mají pré',
     'ale Lenka je žárlivá, tak víc potichu ju?',
     'availability.html'
   );
@@ -354,6 +333,7 @@ const formSteps = {
       { text: 'Drůbež', reaction: 'Pipka z VIPka', nextId: 9 },
       { text: 'Ryba', reaction: 'Jestli budou brát, raději si přines', nextId: 9 },
       { text: 'cokoli', reaction: 'Něco najdeme', nextId: 9 },
+      { text: 'opravdu jsem kytkožrout', reaction: 'ne každý má to štěstí', nextId: 9 },
     ],
   },
   9: {
@@ -444,6 +424,10 @@ const STEP_ILLUSTRATIONS = {
     src: 'images/thinking_lenka.png',
     alt: 'Lenka přemýšlí',
   },
+  4: {
+    src: 'images/cat clock.gif',
+    alt: 'Kočka s hodinami',
+  },
   5: {
     src: 'images/peace_lenka.png',
     alt: 'Lenka ukazuje peace',
@@ -451,6 +435,10 @@ const STEP_ILLUSTRATIONS = {
   7: {
     src: 'images/pointing_petr.png',
     alt: 'Petr ukazuje prstem',
+  },
+  8: {
+    src: 'images/cat meat.gif',
+    alt: 'Kočka a maso',
   },
   9: {
     src: 'images/pointing_lenka.png',
@@ -460,9 +448,25 @@ const STEP_ILLUSTRATIONS = {
     src: 'images/winning_petr.png',
     alt: 'Petr slaví vítězství',
   },
+  11: {
+    src: 'images/patrick sleep.gif',
+    alt: 'Patrick spí',
+  },
   12: {
     src: 'images/thinking_petr.png',
     alt: 'Petr přemýšlí',
+  },
+  13: {
+    src: 'images/breakfast gif.gif',
+    alt: 'Snídaně',
+  },
+  98: {
+    src: 'images/heart.gif',
+    alt: 'Srdce',
+  },
+  99: {
+    src: 'images/shaun.gif',
+    alt: 'Shaun',
   },
 };
 
@@ -587,16 +591,19 @@ function initAvailabilityPage() {
     }
 
     const illustration = createStepIllustration(stepId);
-    if (illustration) {
-      flowEl.replaceChildren(card, illustration);
-    } else {
-      flowEl.replaceChildren(card);
-    }
+    const sideImages = createInstructionSideImages(stepId);
+    const parts = [card];
+    if (illustration) parts.push(illustration);
+    if (sideImages) parts.push(sideImages);
+    flowEl.replaceChildren(...parts);
 
     requestAnimationFrame(() => {
       card.classList.add('visible');
       if (illustration) {
         illustration.classList.add('visible');
+      }
+      if (sideImages) {
+        sideImages.classList.add('visible');
       }
     });
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -622,6 +629,34 @@ function createStepIllustration(stepId) {
 
   figure.appendChild(image);
   return figure;
+}
+
+function createInstructionSideImages(stepId) {
+  if (stepId !== 97) return null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'step-side-images';
+
+  const left = document.createElement('img');
+  left.src = 'images/side_lenka.png';
+  left.alt = 'Lenka vlevo';
+  left.className = 'step-side-image step-side-image-left';
+  left.width = 480;
+  left.height = 720;
+  left.loading = 'lazy';
+  left.decoding = 'async';
+
+  const right = document.createElement('img');
+  right.src = 'images/side_petr.png';
+  right.alt = 'Petr vpravo';
+  right.className = 'step-side-image step-side-image-right';
+  right.width = 480;
+  right.height = 720;
+  right.loading = 'lazy';
+  right.decoding = 'async';
+
+  wrap.append(left, right);
+  return wrap;
 }
 
 const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
@@ -654,7 +689,9 @@ function showQuestionnaireTransition(mainText, subText, onDone) {
     return;
   }
 
-  mainEl.textContent = mainText || '';
+  const hasMainText = Boolean(mainText && String(mainText).trim());
+  mainEl.textContent = hasMainText ? mainText : '';
+  overlay.classList.toggle('no-main', !hasMainText);
   subEl.textContent = subText || '';
   overlay.classList.add('active');
 
@@ -706,7 +743,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
       state.answers.push(answer);
       persistQuestionnaireState(state);
 
-      const transitionMainText = option.text || '';
+      const transitionMainText = '';
       let transitionText = option.reaction || '';
       const safeUrl = option.url ? getSafeExternalUrl(option.url) : '';
       if (!transitionText && safeUrl) {
@@ -922,22 +959,6 @@ function saveLegacyAvailabilityValue(answer) {
   });
 }
 
-function initFunFactBox() {
-  if (hasInitializedFunFactBox) return;
-  if (!document.body) return;
-
-  const factBox = document.createElement('p');
-  factBox.id = 'fun-fact-box';
-  factBox.className = 'fun-fact-box';
-  factBox.textContent = FUN_FACT_PLACEHOLDERS[Math.floor(Math.random() * FUN_FACT_PLACEHOLDERS.length)];
-
-  document.body.appendChild(factBox);
-  hasInitializedFunFactBox = true;
-  requestAnimationFrame(() => {
-    factBox.classList.add('visible');
-  });
-}
-
 /* ============================================================
    BOOT
    ============================================================ */
@@ -946,5 +967,4 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollZoom();
   initQuestionnaireNumberBouncer();
   initAvailabilityPage();
-  initFunFactBox();
 });
