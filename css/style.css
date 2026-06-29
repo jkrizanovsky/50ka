@@ -252,13 +252,17 @@ body {
   left: 50%;
   transform: translateX(-50%);
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
-  font-size: 1.5rem;
-  color: #fff;
+  font-size: 1.2rem;
+  color: #111;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid #111;
+  border-radius: 10px;
+  padding: 0.25em 0.65em;
   opacity: 0;
   transition: opacity 0.35s ease;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.65);
+  text-shadow: none;
   pointer-events: none;
-  z-index: 16;
+  z-index: 30;
   white-space: nowrap;
 }
 
@@ -319,6 +323,10 @@ body {
   text-align: center;
 }
 
+.no-main .transition-main {
+  display: none;
+}
+
 .transition-sub {
   font-family: 'Montserrat', Arial, sans-serif;
   font-size: clamp(0.9rem, 2vw, 1.4rem);
@@ -328,6 +336,11 @@ body {
   max-width: 520px;
   line-height: 1.5;
   padding: 0 1.5rem;
+}
+
+.no-main .transition-sub {
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  max-width: 700px;
 }
 
 /* ============================================================
@@ -457,6 +470,36 @@ html:has(body.questionnaire-locked) {
   object-position: center bottom;
 }
 
+.step-side-images {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  z-index: 3;
+}
+
+.step-side-images.visible {
+  opacity: 1;
+}
+
+.step-side-image {
+  position: absolute;
+  bottom: 0;
+  width: clamp(110px, 18vw, 260px);
+  max-height: min(65vh, 520px);
+  height: auto;
+  object-fit: contain;
+}
+
+.step-side-image-left {
+  left: clamp(0.4rem, 2vw, 2.5rem);
+}
+
+.step-side-image-right {
+  right: clamp(0.4rem, 2vw, 2.5rem);
+}
+
 .step-card.visible {
   opacity: 1;
   transform: translateY(0);
@@ -559,35 +602,6 @@ html:has(body.questionnaire-locked) {
   color: #1f4f9a;
 }
 
-.fun-fact-box {
-  --fun-fact-preferred-width: 420px;
-  --fun-fact-max-width: calc(100vw - 1.5rem);
-  position: fixed;
-  left: 50%;
-  bottom: clamp(1.4rem, 4.5vh, 3rem);
-  width: min(var(--fun-fact-preferred-width), var(--fun-fact-max-width));
-  transform: translate(-50%, 130%);
-  opacity: 0;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: #111;
-  background: #fff;
-  border: 3px solid #111;
-  box-shadow: 6px 6px 0 #111;
-  border-radius: 12px;
-  padding: 0.45em 0.95em;
-  pointer-events: none;
-  z-index: 45;
-  transition: transform 0.45s ease, opacity 0.45s ease;
-  text-align: center;
-}
-
-.fun-fact-box.visible {
-  transform: translate(-50%, 0);
-  opacity: 1;
-}
-
 .step-info-content {
   margin-top: 0.65rem;
   font-family: 'Montserrat', Arial, sans-serif;
@@ -681,10 +695,6 @@ html:has(body.questionnaire-locked) {
     white-space: normal;
     text-align: center;
     max-width: calc(100% - 1.5rem);
-  }
-
-  .fun-fact-box {
-    font-size: 1.05rem;
   }
 
   .availability-buttons {
