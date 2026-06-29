@@ -428,13 +428,13 @@ const STEP_ILLUSTRATIONS = {
     src: 'images/cat clock.gif',
     alt: 'Kočka s hodinami',
   },
-  6: {
-    src: 'images/kid.gif',
-    alt: 'Dítě',
-  },
   5: {
     src: 'images/peace_lenka.png',
     alt: 'Lenka ukazuje peace',
+  },
+  6: {
+    src: 'images/kid.gif',
+    alt: 'Dítě',
   },
   7: {
     src: 'images/pointing_petr.png',
