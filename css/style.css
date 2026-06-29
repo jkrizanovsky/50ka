@@ -227,10 +227,6 @@ body {
 }
 
 .face-question {
-  position: absolute;
-  bottom: clamp(1.4rem, 4.5vh, 3rem);
-  left: 50%;
-  transform: translateX(-50%);
   font-size: clamp(1.3rem, 3vw, 2.15rem);
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -246,21 +242,26 @@ body {
   z-index: 15;
 }
 
-.face-helper-hint {
+#face-bottom-group {
   position: absolute;
-  bottom: clamp(5.1rem, 10.5vh, 6.9rem);
+  bottom: clamp(1.4rem, 4.5vh, 3rem);
   left: 50%;
   transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.face-helper-hint {
   font-family: 'Montserrat', 'Segoe UI', Arial, sans-serif;
   font-size: 1.2rem;
-  color: #111;
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid #111;
-  border-radius: 10px;
-  padding: 0.25em 0.65em;
+  color: #fff;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.6);
   opacity: 0;
   transition: opacity 0.35s ease;
-  text-shadow: none;
   pointer-events: none;
   z-index: 30;
   white-space: nowrap;
@@ -452,7 +453,7 @@ html:has(body.questionnaire-locked) {
   transform: translateY(16px);
   transition: opacity 0.35s ease, transform 0.35s ease;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   overflow: hidden;
 }
@@ -467,7 +468,7 @@ html:has(body.questionnaire-locked) {
   height: 100%;
   display: block;
   object-fit: contain;
-  object-position: center bottom;
+  object-position: center;
 }
 
 .step-side-images {
@@ -486,10 +487,11 @@ html:has(body.questionnaire-locked) {
 .step-side-image {
   position: absolute;
   bottom: 0;
-  width: clamp(110px, 18vw, 260px);
-  max-height: min(65vh, 520px);
-  height: auto;
+  height: 100vh;
+  width: auto;
+  max-width: 48vw;
   object-fit: contain;
+  object-position: center bottom;
 }
 
 .step-side-image-left {
@@ -691,9 +693,13 @@ html:has(body.questionnaire-locked) {
 
   .face-helper-hint {
     font-size: 1.05rem;
-    bottom: clamp(4.2rem, 10vh, 6.1rem);
     white-space: normal;
     text-align: center;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  #face-bottom-group {
+    bottom: clamp(1rem, 3vw, 2rem);
     max-width: calc(100% - 1.5rem);
   }
 
