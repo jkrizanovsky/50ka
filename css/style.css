@@ -594,7 +594,6 @@ html:has(body.questionnaire-locked) {
   font-size: clamp(0.95rem, 2vw, 1.06rem);
   font-weight: 600;
   line-height: 1.45;
-  text-transform: uppercase;
   letter-spacing: 0.4px;
   color: #111;
   background: #fff;
