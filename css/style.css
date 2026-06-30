@@ -581,22 +581,35 @@ html:has(body.questionnaire-locked) {
   margin-top: 0.8rem;
 }
 
-.step-reaction {
-  margin-top: 0.65rem;
+.fun-fact-box {
+  --fun-fact-preferred-width: 420px;
+  --fun-fact-max-width: calc(100vw - 1.5rem);
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1.4rem, 4.5vh, 3rem);
+  width: min(var(--fun-fact-preferred-width), var(--fun-fact-max-width));
+  transform: translate(-50%, 130%);
+  opacity: 0;
   font-family: 'Montserrat', Arial, sans-serif;
   font-size: clamp(0.95rem, 2vw, 1.06rem);
   font-weight: 600;
-  color: #2c2c2c;
   line-height: 1.45;
-  min-height: 1.4rem;
-  opacity: 0;
-  transform: translateY(3px);
-  transition: opacity 0.28s ease, transform 0.28s ease;
+  letter-spacing: 0.4px;
+  color: #111;
+  background: #fff;
+  border: 3px solid #111;
+  box-shadow: 6px 6px 0 #111;
+  border-radius: 12px;
+  padding: 0.45em 0.95em;
+  pointer-events: none;
+  z-index: 45;
+  transition: transform 0.45s ease, opacity 0.45s ease;
+  text-align: center;
 }
 
-.step-reaction.visible {
+.fun-fact-box.visible {
+  transform: translate(-50%, 0);
   opacity: 1;
-  transform: translateY(0);
 }
 
 .step-reaction a,
@@ -696,6 +709,10 @@ html:has(body.questionnaire-locked) {
     white-space: normal;
     text-align: center;
     max-width: calc(100% - 1.5rem);
+  }
+
+  .fun-fact-box {
+    font-size: 1.05rem;
   }
 
   #face-bottom-group {

@@ -665,6 +665,7 @@ function createInstructionSideImages(stepId) {
 
 const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
 const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
+const QUESTIONNAIRE_REACTION_PREVIEW_MS = 650;
 
 function getSafeDisplayUrl(urlValue) {
   const safeUrl = getSafeExternalUrl(urlValue);
@@ -731,6 +732,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
     button.addEventListener('click', () => {
       if (button.disabled) return;
+      const reactionEl = card.querySelector('.step-reaction');
 
       optionsWrap.querySelectorAll('.step-option-btn').forEach((btn) => {
         btn.disabled = true;
@@ -755,12 +757,9 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
-      if (option.reaction) {
-        const reactionEl = card.querySelector('.step-reaction');
-        if (reactionEl) {
-          reactionEl.textContent = option.reaction;
-          reactionEl.classList.add('visible');
-        }
+      if (option.reaction && reactionEl) {
+        reactionEl.textContent = option.reaction;
+        reactionEl.classList.add('visible');
       }
 
       if (stepId === 1) {
@@ -773,10 +772,18 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
       if (option.nextId != null) {
         const goNext = () => showStep(option.nextId);
-        if (transitionMainText || transitionText) {
-          showQuestionnaireTransition(transitionMainText, transitionText, goNext);
+        const continueToNextStep = () => {
+          if (transitionMainText || transitionText) {
+            showQuestionnaireTransition(transitionMainText, transitionText, goNext);
+          } else {
+            setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
+          }
+        };
+
+        if (option.reaction && reactionEl) {
+          setTimeout(continueToNextStep, QUESTIONNAIRE_REACTION_PREVIEW_MS);
         } else {
-          setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
+          continueToNextStep();
         }
       }
     });
@@ -787,7 +794,8 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
   card.appendChild(optionsWrap);
 
   const reactionEl = document.createElement('p');
-  reactionEl.className = 'step-reaction';
+  reactionEl.className = 'step-reaction fun-fact-box';
+  reactionEl.setAttribute('aria-live', 'polite');
   card.appendChild(reactionEl);
 }
 
