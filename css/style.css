@@ -581,6 +581,24 @@ html:has(body.questionnaire-locked) {
   margin-top: 0.8rem;
 }
 
+.step-reaction {
+  margin-top: 0.65rem;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: clamp(0.95rem, 2vw, 1.06rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: #2c2c2c;
+  min-height: 1.4rem;
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.step-reaction.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .fun-fact-box {
   --fun-fact-preferred-width: 420px;
   --fun-fact-max-width: calc(100vw - 1.5rem);
@@ -590,10 +608,8 @@ html:has(body.questionnaire-locked) {
   width: min(var(--fun-fact-preferred-width), var(--fun-fact-max-width));
   transform: translate(-50%, 130%);
   opacity: 0;
-  font-family: 'Montserrat', Arial, sans-serif;
-  font-size: clamp(0.95rem, 2vw, 1.06rem);
-  font-weight: 600;
-  line-height: 1.45;
+  font-size: 1.5rem;
+  text-transform: uppercase;
   letter-spacing: 0.4px;
   color: #111;
   background: #fff;
