@@ -250,9 +250,11 @@ function showTransitionThenNavigate(mainText, subText, destination) {
   const overlay   = document.getElementById('transition-overlay');
   const mainEl    = document.getElementById('transition-main');
   const subEl     = document.getElementById('transition-sub');
-  if (!overlay) return;
+  if (!overlay || !mainEl || !subEl) return;
 
-  mainEl.textContent = mainText;
+  const hasMainText = Boolean(mainText && String(mainText).trim());
+  mainEl.textContent = hasMainText ? mainText : '';
+  overlay.classList.toggle('no-main', !hasMainText);
   subEl.textContent  = subText;
 
   // Activate (CSS handles the opacity fade-in)
@@ -272,7 +274,7 @@ function chooseLeft() {
   // Save choice so availability page can log it with user ID
   sessionStorage.setItem('50ka_choice', 'left');
   showTransitionThenNavigate(
-    'kočky mají pré',
+    '',
     'ale neříkej to nahlas aby Petr nežárlil...',
     'availability.html'
   );
@@ -282,7 +284,7 @@ function chooseRight() {
   hasMadeFaceChoice = true;
   sessionStorage.setItem('50ka_choice', 'right');
   showTransitionThenNavigate(
-    'kocouři mají pré',
+    '',
     'ale Lenka je žárlivá, tak víc potichu ju?',
     'availability.html'
   );
@@ -312,10 +314,10 @@ const formSteps = {
   4: {
     question: 'V kolik dorazíš?',
     options: [
-      { text: 'odpoledne (14-16)', nextId: 5 },
-      { text: 'pozdní odpoledne (16-19)', nextId: 5 },
-      { text: 'večer (19-20)', nextId: 5 },
-      { text: 'To bude tajemství', nextId: 5 },
+      { text: 'odpoledne (14-16)', reaction: 'ranní ptáče dál doskáče.', nextId: 5 },
+      { text: 'pozdní odpoledne (16-19)', reaction: 'možná ještě budou teplý řízky...', nextId: 5 },
+      { text: 'večer (19-20)', reaction: 'kdo pozdě chodí, sám sobě škodí!', nextId: 5 },
+      { text: 'To bude tajemství', reaction: 'tajemnější než hrad v Karpatech...', nextId: 5 },
     ],
   },
   5: {
@@ -371,7 +373,7 @@ const formSteps = {
       { text: 'Metal', reaction: 'Něco se pro tebe najde', nextId: 11 },
       { text: 'Punk', reaction: 'Něco se pro tebe najde', nextId: 11 },
       { text: 'Dechmetal', reaction: 'Tak to budeš muset donést vlastní fujaru', nextId: 11 },
-      { text: 'jiné', reaction: 'Něco se pro tebe najde', nextId: 11 },
+      { text: 'jiné', reaction: 'tak to máš nejspíš smůlu', nextId: 11 },
     ],
   },
   11: {
@@ -395,8 +397,8 @@ const formSteps = {
   13: {
     question: 'Potřebuješ snídani?',
     options: [
-      { text: 'Snídaně hromadně', nextId: 97 },
-      { text: 'Snídaní až doma', nextId: 97 },
+      { text: 'Snídaně hromadně', reaction: 'švédská trojka u švédského stolu?', nextId: 97 },
+      { text: 'Snídaní až doma', reaction: 'hezky v soukromí.', nextId: 97 },
     ],
   },
   97: {
@@ -415,6 +417,7 @@ const formSteps = {
       <p>Tipy na ubytování v okolí: <a href="https://www.pthotel.cz" target="_blank" rel="noopener noreferrer">pthotel.cz</a>, <a href="https://www.hotelparkan.cz" target="_blank" rel="noopener noreferrer">hotelparkan.cz</a>...</p>
     `,
     nextBtnText: 'Pokračovat k dárkům',
+    nextBtnReaction: 'těšíme se na vás, ale ještě předtím...',
     nextId: 98,
   },
   98: {
@@ -842,7 +845,13 @@ function renderInfoStep(stepId, step, card, showStep, state) {
     persistQuestionnaireState(state);
 
     if (step.nextId != null) {
-      setTimeout(() => showStep(step.nextId), QUESTIONNAIRE_TRANSITION_FADE_MS);
+      const goNext = () => showStep(step.nextId);
+      const transitionText = step.nextBtnReaction || '';
+      if (transitionText) {
+        showQuestionnaireTransition('', transitionText, goNext);
+      } else {
+        setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
+      }
     }
   });
 
