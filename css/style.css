@@ -608,9 +608,10 @@ html:has(body.questionnaire-locked) {
   width: min(var(--fun-fact-preferred-width), var(--fun-fact-max-width));
   transform: translate(-50%, 130%);
   opacity: 0;
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+  line-height: 1.25;
   color: #111;
   background: #fff;
   border: 3px solid #111;
@@ -728,7 +729,7 @@ html:has(body.questionnaire-locked) {
   }
 
   .fun-fact-box {
-    font-size: 1.05rem;
+    font-size: 0.72rem;
   }
 
   #face-bottom-group {
