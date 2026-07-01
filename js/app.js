@@ -438,7 +438,7 @@ const formSteps = {
 };
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
-const QUESTIONNAIRE_ANSWER_STEP_LIMIT = 97;
+const QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT = 97;
 const STEP_ILLUSTRATIONS = {
   1: {
     src: 'images/noding_petr.png',
@@ -918,12 +918,8 @@ function renderFinalForm(stepId, step, card, state) {
       fields: contact,
       nextId: null,
     };
-    const existingAnswerIndex = state.answers.findIndex((entry) => entry.stepId === stepId);
-    if (existingAnswerIndex === -1) {
-      state.answers.push(finalAnswer);
-    } else {
-      state.answers[existingAnswerIndex] = finalAnswer;
-    }
+    state.answers = state.answers.filter((entry) => entry.stepId !== stepId);
+    state.answers.push(finalAnswer);
     persistQuestionnaireState(state);
 
     statusEl.textContent = 'Odesíláme...';
@@ -1012,7 +1008,7 @@ function persistQuestionnaireState(state) {
 
 function getTrackedAnswers(answers) {
   return answers
-    .filter((entry) => Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_LIMIT)
+    .filter((entry) => Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT)
     .map((entry) => ({
       stepId: entry.stepId,
       question: entry.question,

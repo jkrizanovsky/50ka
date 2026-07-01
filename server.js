@@ -20,7 +20,8 @@ const rateLimit = require('express-rate-limit');
 const PORT   = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'db');
 const DB_PATH = path.join(DB_DIR, 'responses.db');
-const QUESTIONNAIRE_ANSWER_STEP_LIMIT = 97;
+const QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT = 97;
+const MAX_ANSWER_TEXT_LENGTH = 300;
 const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
@@ -48,7 +49,7 @@ function ensureColumn(columnName, columnDefinition) {
   }
 }
 
-function normalizeOptionalText(value, maxLength = 300) {
+function normalizeOptionalText(value, maxLength = MAX_ANSWER_TEXT_LENGTH) {
   if (value == null || value === '') return null;
   if (typeof value !== 'string') return null;
   const trimmed = value.trim();
@@ -60,7 +61,7 @@ function normalizeAnswers(answers) {
   if (!Array.isArray(answers)) return [];
 
   return answers
-    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_LIMIT)
+    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT)
     .map((entry) => ({
       stepId: entry.stepId,
       question: normalizeOptionalText(entry.question, 200) || '',
