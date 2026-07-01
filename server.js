@@ -12,6 +12,7 @@
 const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
+const crypto  = require('crypto');
 const Database = require('better-sqlite3');
 const rateLimit = require('express-rate-limit');
 
@@ -76,19 +77,11 @@ function getSubmittedContactField(contact, fieldName, directValue) {
   return directValue;
 }
 
-function isLoopbackRequest(ipAddress = '') {
-  return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ipAddress);
-}
-
 function requireAdminAccess(req, res, next) {
   const adminUsername = process.env.ADMIN_USERNAME;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminUsername || !adminPassword) {
-    if (isLoopbackRequest(req.ip)) {
-      return next();
-    }
-
     return res.status(503).send('Admin page needs ADMIN_USERNAME and ADMIN_PASSWORD.');
   }
 
@@ -115,7 +108,17 @@ function requireAdminAccess(req, res, next) {
     return res.status(401).send('Invalid credentials.');
   }
 
-  if (username !== adminUsername || password !== adminPassword) {
+  const providedUsername = Buffer.from(username);
+  const providedPassword = Buffer.from(password);
+  const expectedUsername = Buffer.from(adminUsername);
+  const expectedPassword = Buffer.from(adminPassword);
+
+  const isUsernameMatch = providedUsername.length === expectedUsername.length
+    && crypto.timingSafeEqual(providedUsername, expectedUsername);
+  const isPasswordMatch = providedPassword.length === expectedPassword.length
+    && crypto.timingSafeEqual(providedPassword, expectedPassword);
+
+  if (!isUsernameMatch || !isPasswordMatch) {
     res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
     return res.status(401).send('Invalid credentials.');
   }
