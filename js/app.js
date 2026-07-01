@@ -42,12 +42,12 @@ const FUN_FACTS = [
   'Lenka se narodila ve stejný den jako Andrej Ševčenko, naopak Petr má stejné narozeniny jako Alfred Hitchcock... jen teda o 77 let později.',
   'Kdyby se rozhodlo přijít 100 plejtváků obrovských, museli bychom zarezervovat 2 fotbalová hřiště a cca 1000 tun planktonu.',
   '50 průměrných dětí by dokázalo utáhnout 1 osobní auto do mírného kopce. Dotazy jak jsme zajistili odvoz nepřijímáme!!!',
-  'nejrychlejší jedlík historie by za 25 let dokázal spořádat přes 109 milionů párků, pokud by to chtěl někdy zkusit, Lenka nakoupí párky.',
+  'nejrychlejší jedlík historie by za 25 let dokázal spořádat přes 109 milionů párků, pokud by to chtěl někdo zkusit, Lenka nakoupí párky.',
   'nejstarší maso pozřené člověkem bylo z 50 000 let starého bizona, uchovaného v permafrostu. Američtí vědci si z něj udělali guláš.',
   'Letos slaví 50 let krom Petra a Lenky i legendární Pito, to naštěstí nepodáváme. Co se týče piva, dokonce 100 let letos slaví Stella Artois.',
   'Výročí 50 let od založení letos slaví U2, The Clash a The Cure. Dohromady ti tyto tři kapely přinesou přes 50 hodin kvalitní muziky.',
   'Bohužel na 50 let člověk usnout nemůže, oficiální rekord dokázali nezávisle na sobě dva chlapci a pohybuje se okolo 11 nepřetržitých dní.',
-  'Kdyby se jelo příštích 50 let nepřetržitě autem za rychlosti 100km/h, byla by další oslava dokonce na Venuši, snad to děti... ehm řidič zvládne.',
+  'Kdyby se jelo příštích 50 let nepřetržitě autem za rychlosti 100km/h, byla by další oslava dokonce na Venuši, snad to náš... ehm řidič zvládne.',
   'Na přípravu jednoho espressa v průměru padne 50 zrnek kávy. Průměrný kávovník by tedy vyprodukoval pouhých 4000 espress za 50 let.',
 ];
 
