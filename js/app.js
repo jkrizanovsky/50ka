@@ -438,6 +438,7 @@ const formSteps = {
 };
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
+const QUESTIONNAIRE_ANSWER_STEP_LIMIT = 97;
 const STEP_ILLUSTRATIONS = {
   1: {
     src: 'images/noding_petr.png',
@@ -791,10 +792,6 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
-      if (stepId === 1) {
-        saveLegacyAvailability(option.text);
-      }
-
       if (safeUrl) {
         window.open(safeUrl, '_blank', 'noopener,noreferrer');
       }
@@ -877,27 +874,19 @@ function renderFinalForm(stepId, step, card, state) {
   form.className = 'final-form availability-form';
 
   step.fields.forEach((field) => {
+    const fieldConfig = getFinalFormFieldConfig(field);
     const fieldWrap = document.createElement('label');
     fieldWrap.className = 'final-form-field';
 
     const labelSpan = document.createElement('span');
-    labelSpan.textContent = field;
+    labelSpan.textContent = fieldConfig.label;
     fieldWrap.appendChild(labelSpan);
 
     const input = document.createElement('input');
     input.required = true;
-    input.name = field.toLowerCase();
-
-    if (field.toLowerCase().includes('mail')) {
-      input.type = 'email';
-      input.autocomplete = 'email';
-    } else if (field.toLowerCase().includes('telefon')) {
-      input.type = 'tel';
-      input.autocomplete = 'tel';
-    } else {
-      input.type = 'text';
-      input.autocomplete = 'name';
-    }
+    input.name = fieldConfig.name;
+    input.type = fieldConfig.type;
+    input.autocomplete = fieldConfig.autocomplete;
 
     fieldWrap.appendChild(input);
     form.appendChild(fieldWrap);
@@ -913,31 +902,47 @@ function renderFinalForm(stepId, step, card, state) {
   statusEl.className = 'final-form-status';
   form.appendChild(statusEl);
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (state.completed) return;
 
     const formData = new FormData(form);
     const contact = Object.fromEntries(formData.entries());
-    state.answers.push({
+    const finalAnswer = {
       stepId,
       question: step.title,
       answer: 'odesláno',
       fields: contact,
       nextId: null,
-    });
-    state.completed = true;
+    };
+    const existingAnswerIndex = state.answers.findIndex((entry) => entry.stepId === stepId);
+    if (existingAnswerIndex === -1) {
+      state.answers.push(finalAnswer);
+    } else {
+      state.answers[existingAnswerIndex] = finalAnswer;
+    }
     persistQuestionnaireState(state);
 
-    const legacyAvailability = getLegacyAvailabilityValue(state.answers);
-    saveLegacyAvailabilityValue(legacyAvailability);
-
-    statusEl.textContent = 'Děkujeme, těšíme se na tebe!';
+    statusEl.textContent = 'Odesíláme...';
     statusEl.classList.add('visible');
     submitBtn.disabled = true;
     form.querySelectorAll('input').forEach((input) => {
       input.disabled = true;
     });
+
+    const wasSaved = await submitQuestionnaireResponse(state, contact);
+    if (!wasSaved) {
+      statusEl.textContent = 'Odeslání se nepovedlo, zkus to prosím znovu.';
+      submitBtn.disabled = false;
+      form.querySelectorAll('input').forEach((input) => {
+        input.disabled = false;
+      });
+      return;
+    }
+
+    state.completed = true;
+    persistQuestionnaireState(state);
+    statusEl.textContent = 'Děkujeme, těšíme se na tebe!';
   });
 
   card.appendChild(form);
@@ -950,6 +955,35 @@ function getLegacyAvailabilityValue(answers) {
   if (normalized === 'ne') return 'ne';
   if (normalized === 'uvidíme' || normalized === 'uvidime') return 'uvidime';
   return 'uvidime';
+}
+
+function getFinalFormFieldConfig(fieldLabel) {
+  const normalized = String(fieldLabel || '').toLowerCase();
+
+  if (normalized.includes('mail')) {
+    return {
+      label: fieldLabel,
+      name: 'email',
+      type: 'email',
+      autocomplete: 'email',
+    };
+  }
+
+  if (normalized.includes('telefon')) {
+    return {
+      label: fieldLabel,
+      name: 'phone',
+      type: 'tel',
+      autocomplete: 'tel',
+    };
+  }
+
+  return {
+    label: fieldLabel,
+    name: 'name',
+    type: 'text',
+    autocomplete: 'name',
+  };
 }
 
 function getLegacyChoiceValue(choice) {
@@ -973,36 +1007,51 @@ function persistQuestionnaireState(state) {
   }));
 }
 
-function saveLegacyAvailability(answerText) {
-  const normalized = String(answerText || '').toLowerCase();
-  const mapped = normalized === 'ano'
-    ? 'ano'
-    : normalized === 'ne'
-      ? 'ne'
-      : 'uvidime';
-  saveLegacyAvailabilityValue(mapped);
+function getTrackedAnswers(answers) {
+  return answers
+    .filter((entry) => Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_LIMIT)
+    .map((entry) => ({
+      stepId: entry.stepId,
+      question: entry.question,
+      answer: entry.answer,
+    }));
 }
 
-function saveLegacyAvailabilityValue(answer) {
+function buildQuestionnairePayload(state, contact) {
+  const trackedAnswers = getTrackedAnswers(state.answers);
+  const availability = getLegacyAvailabilityValue(trackedAnswers);
   const choice = getLegacyChoiceValue(sessionStorage.getItem('50ka_choice'));
   const payload = {
-    userId:    USER_ID,
-    choice:    choice,
-    available: answer,
+    userId: USER_ID,
+    choice,
+    available: availability,
+    answers: trackedAnswers,
+    contact: {
+      name: contact.name || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+    },
     timestamp: new Date().toISOString(),
   };
+  return payload;
+}
 
-  // Persist locally always
+async function submitQuestionnaireResponse(state, contact) {
+  const payload = buildQuestionnairePayload(state, contact);
+
   localStorage.setItem('50ka_response', JSON.stringify(payload));
 
-  // Attempt to POST to server (graceful failure if offline)
-  fetch('/api/response', {
-    method:  'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify(payload),
-  }).catch(() => {
-    // Server not running — local storage is still saved
-  });
+  try {
+    const response = await fetch('/api/response', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
 }
 
 function initFunFactBox() {

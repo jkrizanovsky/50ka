@@ -26,28 +26,111 @@ if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
 /* ---------- Database ---------- */
 const db = new Database(DB_PATH);
 
+function ensureColumn(columnName, columnDefinition) {
+  const columns = db.prepare('PRAGMA table_info(responses)').all();
+  const hasColumn = columns.some((column) => column.name === columnName);
+  if (!hasColumn) {
+    db.exec(`ALTER TABLE responses ADD COLUMN ${columnName} ${columnDefinition}`);
+  }
+}
+
+function normalizeOptionalText(value, maxLength = 300) {
+  if (value == null || value === '') return null;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.slice(0, maxLength);
+}
+
+function normalizeAnswers(answers) {
+  if (!Array.isArray(answers)) return [];
+
+  return answers
+    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < 97)
+    .map((entry) => ({
+      stepId: entry.stepId,
+      question: normalizeOptionalText(entry.question, 200) || '',
+      answer: normalizeOptionalText(entry.answer, 200) || '',
+    }))
+    .filter((entry) => entry.question && entry.answer);
+}
+
+function isLoopbackRequest(ipAddress = '') {
+  return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ipAddress);
+}
+
+function requireAdminAccess(req, res, next) {
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminUsername || !adminPassword) {
+    if (isLoopbackRequest(req.ip)) {
+      return next();
+    }
+
+    return res.status(503).send('Admin page needs ADMIN_USERNAME and ADMIN_PASSWORD.');
+  }
+
+  const header = req.headers.authorization || '';
+  const [scheme, encoded] = header.split(' ');
+  if (scheme !== 'Basic' || !encoded) {
+    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
+    return res.status(401).send('Authentication required.');
+  }
+
+  let username = '';
+  let password = '';
+
+  try {
+    [username, password] = Buffer.from(encoded, 'base64').toString('utf8').split(':');
+  } catch {
+    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
+    return res.status(401).send('Invalid credentials.');
+  }
+
+  if (username !== adminUsername || password !== adminPassword) {
+    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
+    return res.status(401).send('Invalid credentials.');
+  }
+
+  return next();
+}
+
 // Create table if it doesn't exist
 db.exec(`
   CREATE TABLE IF NOT EXISTS responses (
-    id        INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id   TEXT    NOT NULL,
-    choice    TEXT,
-    available TEXT,
-    timestamp TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id      TEXT    NOT NULL,
+    choice       TEXT,
+    available    TEXT,
+    name         TEXT,
+    email        TEXT,
+    phone        TEXT,
+    answers_json TEXT,
+    timestamp    TEXT,
+    created_at   TEXT DEFAULT (datetime('now'))
   );
 
   -- One row per unique user (upsert on arrival)
   CREATE UNIQUE INDEX IF NOT EXISTS idx_user ON responses(user_id);
 `);
 
+ensureColumn('name', 'TEXT');
+ensureColumn('email', 'TEXT');
+ensureColumn('phone', 'TEXT');
+ensureColumn('answers_json', 'TEXT');
+
 const upsertStmt = db.prepare(`
-  INSERT INTO responses (user_id, choice, available, timestamp)
-    VALUES (@userId, @choice, @available, @timestamp)
+  INSERT INTO responses (user_id, choice, available, name, email, phone, answers_json, timestamp)
+    VALUES (@userId, @choice, @available, @name, @email, @phone, @answersJson, @timestamp)
   ON CONFLICT(user_id) DO UPDATE SET
-    choice    = excluded.choice,
-    available = excluded.available,
-    timestamp = excluded.timestamp
+    choice       = excluded.choice,
+    available    = excluded.available,
+    name         = excluded.name,
+    email        = excluded.email,
+    phone        = excluded.phone,
+    answers_json = excluded.answers_json,
+    timestamp    = excluded.timestamp
 `);
 
 /* ---------- Express app ---------- */
@@ -75,7 +158,17 @@ const readLimiter = rateLimit({
 
 /* POST /api/response — store / update a visitor's answer */
 app.post('/api/response', writeLimiter, (req, res) => {
-  const { userId, choice, available, timestamp } = req.body || {};
+  const {
+    userId,
+    choice,
+    available,
+    answers,
+    timestamp,
+    contact,
+    name,
+    email,
+    phone,
+  } = req.body || {};
 
   if (!userId || typeof userId !== 'string' || userId.length > 64) {
     return res.status(400).json({ error: 'Invalid userId' });
@@ -96,11 +189,19 @@ app.post('/api/response', writeLimiter, (req, res) => {
     nezadano: 'nezadano',
   };
   const normalizedChoice = choiceMap[choice] || null;
+  const normalizedAnswers = normalizeAnswers(answers);
+  const normalizedName = normalizeOptionalText(contact?.name ?? name, 120);
+  const normalizedEmail = normalizeOptionalText(contact?.email ?? email, 320);
+  const normalizedPhone = normalizeOptionalText(contact?.phone ?? phone, 80);
 
   upsertStmt.run({
-    userId:    userId,
-    choice:    normalizedChoice || null,
+    userId,
+    choice: normalizedChoice || null,
     available: available || null,
+    name: normalizedName,
+    email: normalizedEmail,
+    phone: normalizedPhone,
+    answersJson: JSON.stringify(normalizedAnswers),
     timestamp: timestamp || new Date().toISOString(),
   });
 
@@ -108,9 +209,13 @@ app.post('/api/response', writeLimiter, (req, res) => {
 });
 
 /* GET /api/responses — read all responses (admin use) */
-app.get('/api/responses', readLimiter, (req, res) => {
-  const rows = db.prepare('SELECT * FROM responses ORDER BY created_at DESC').all();
+app.get('/api/responses', readLimiter, requireAdminAccess, (req, res) => {
+  const rows = db.prepare('SELECT * FROM responses ORDER BY datetime(timestamp) DESC, datetime(created_at) DESC').all();
   res.json(rows);
+});
+
+app.get('/admin', readLimiter, requireAdminAccess, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 /* Fallback: serve index.html for any unmatched path */
