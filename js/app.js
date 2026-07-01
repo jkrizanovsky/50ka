@@ -33,6 +33,13 @@ function getOrCreateUserId() {
 
 const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
+let hasInitializedFunFactBox = false;
+
+const FUN_FACT_PLACEHOLDERS = [
+  'Fun fact: sem přijde krátký zajímavý detail.',
+  'Fun fact: tady bude prostor pro další perličku.',
+  'Fun fact: později sem doplníme opravdový fakt.',
+];
 
 /* ============================================================
    CYCLING NUMBER IMAGE
@@ -665,7 +672,6 @@ function createInstructionSideImages(stepId) {
 
 const QUESTIONNAIRE_TRANSITION_DISPLAY_MS = 2200;
 const QUESTIONNAIRE_TRANSITION_FADE_MS = 220;
-const QUESTIONNAIRE_REACTION_PREVIEW_MS = 650;
 
 function getSafeDisplayUrl(urlValue) {
   const safeUrl = getSafeExternalUrl(urlValue);
@@ -732,7 +738,6 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
     button.addEventListener('click', () => {
       if (button.disabled) return;
-      const reactionEl = card.querySelector('.step-reaction');
 
       optionsWrap.querySelectorAll('.step-option-btn').forEach((btn) => {
         btn.disabled = true;
@@ -772,18 +777,10 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 
       if (option.nextId != null) {
         const goNext = () => showStep(option.nextId);
-        const continueToNextStep = () => {
-          if (transitionMainText || transitionText) {
-            showQuestionnaireTransition(transitionMainText, transitionText, goNext);
-          } else {
-            setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
-          }
-        };
-
-        if (option.reaction && reactionEl) {
-          setTimeout(continueToNextStep, QUESTIONNAIRE_REACTION_PREVIEW_MS);
+        if (transitionMainText || transitionText) {
+          showQuestionnaireTransition(transitionMainText, transitionText, goNext);
         } else {
-          continueToNextStep();
+          setTimeout(goNext, QUESTIONNAIRE_TRANSITION_FADE_MS);
         }
       }
     });
@@ -794,8 +791,7 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
   card.appendChild(optionsWrap);
 
   const reactionEl = document.createElement('p');
-  reactionEl.className = 'step-reaction fun-fact-box';
-  reactionEl.setAttribute('aria-live', 'polite');
+  reactionEl.className = 'step-reaction';
   card.appendChild(reactionEl);
 }
 
@@ -983,6 +979,22 @@ function saveLegacyAvailabilityValue(answer) {
   });
 }
 
+function initFunFactBox() {
+  if (hasInitializedFunFactBox) return;
+  if (!document.body) return;
+
+  const factBox = document.createElement('p');
+  factBox.id = 'fun-fact-box';
+  factBox.className = 'fun-fact-box';
+  factBox.textContent = FUN_FACT_PLACEHOLDERS[Math.floor(Math.random() * FUN_FACT_PLACEHOLDERS.length)];
+
+  document.body.appendChild(factBox);
+  hasInitializedFunFactBox = true;
+  requestAnimationFrame(() => {
+    factBox.classList.add('visible');
+  });
+}
+
 /* ============================================================
    BOOT
    ============================================================ */
@@ -991,4 +1003,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initScrollZoom();
   initQuestionnaireNumberBouncer();
   initAvailabilityPage();
+  initFunFactBox();
 });
