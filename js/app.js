@@ -875,14 +875,17 @@ function renderFinalForm(stepId, step, card, state) {
 
   step.fields.forEach((field) => {
     const fieldConfig = getFinalFormFieldConfig(field);
+    const inputId = `final-form-${fieldConfig.name}`;
     const fieldWrap = document.createElement('label');
     fieldWrap.className = 'final-form-field';
+    fieldWrap.htmlFor = inputId;
 
     const labelSpan = document.createElement('span');
     labelSpan.textContent = fieldConfig.label;
     fieldWrap.appendChild(labelSpan);
 
     const input = document.createElement('input');
+    input.id = inputId;
     input.required = true;
     input.name = fieldConfig.name;
     input.type = fieldConfig.type;

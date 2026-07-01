@@ -19,6 +19,16 @@ const rateLimit = require('express-rate-limit');
 const PORT   = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'db');
 const DB_PATH = path.join(DB_DIR, 'responses.db');
+const QUESTIONNAIRE_ANSWER_STEP_LIMIT = 97;
+const MAX_NAME_LENGTH = 120;
+const MAX_EMAIL_LENGTH = 320;
+const MAX_PHONE_LENGTH = 80;
+const RESPONSE_TEXT_COLUMNS = new Map([
+  ['name', 'TEXT'],
+  ['email', 'TEXT'],
+  ['phone', 'TEXT'],
+  ['answers_json', 'TEXT'],
+]);
 
 // Ensure db/ directory exists
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
@@ -27,6 +37,9 @@ if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
 const db = new Database(DB_PATH);
 
 function ensureColumn(columnName, columnDefinition) {
+  if (RESPONSE_TEXT_COLUMNS.get(columnName) !== columnDefinition) {
+    throw new Error(`Unsupported response column: ${columnName}`);
+  }
   const columns = db.prepare('PRAGMA table_info(responses)').all();
   const hasColumn = columns.some((column) => column.name === columnName);
   if (!hasColumn) {
@@ -46,7 +59,7 @@ function normalizeAnswers(answers) {
   if (!Array.isArray(answers)) return [];
 
   return answers
-    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < 97)
+    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_LIMIT)
     .map((entry) => ({
       stepId: entry.stepId,
       question: normalizeOptionalText(entry.question, 200) || '',
@@ -190,9 +203,9 @@ app.post('/api/response', writeLimiter, (req, res) => {
   };
   const normalizedChoice = choiceMap[choice] || null;
   const normalizedAnswers = normalizeAnswers(answers);
-  const normalizedName = normalizeOptionalText(contact?.name ?? name, 120);
-  const normalizedEmail = normalizeOptionalText(contact?.email ?? email, 320);
-  const normalizedPhone = normalizeOptionalText(contact?.phone ?? phone, 80);
+  const normalizedName = normalizeOptionalText(contact?.name ?? name, MAX_NAME_LENGTH);
+  const normalizedEmail = normalizeOptionalText(contact?.email ?? email, MAX_EMAIL_LENGTH);
+  const normalizedPhone = normalizeOptionalText(contact?.phone ?? phone, MAX_PHONE_LENGTH);
 
   upsertStmt.run({
     userId,
