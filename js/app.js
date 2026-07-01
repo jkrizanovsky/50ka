@@ -34,6 +34,7 @@ function getOrCreateUserId() {
 const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
 let hasInitializedFunFactBox = false;
+const FUN_FACT_HIDDEN_STEPS = new Set([97, 98, 99]);
 
 const FUN_FACT_PLACEHOLDERS = [
   'Fun fact: sem přijde krátký zajímavý detail.',
@@ -607,6 +608,7 @@ function initAvailabilityPage() {
     if (illustration) parts.push(illustration);
     if (sideImages) parts.push(sideImages);
     flowEl.replaceChildren(...parts);
+    updateFunFactVisibility(stepId);
 
     requestAnimationFrame(() => {
       card.classList.add('visible');
@@ -621,6 +623,12 @@ function initAvailabilityPage() {
   };
 
   showStep(1);
+}
+
+function updateFunFactVisibility(stepId) {
+  const factBox = document.getElementById('fun-fact-box');
+  if (!factBox) return;
+  factBox.classList.toggle('visible', !FUN_FACT_HIDDEN_STEPS.has(stepId));
 }
 
 function createStepIllustration(stepId) {
@@ -762,11 +770,6 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
         transitionText = safeLinkText ? `Otevíráme: ${safeLinkText}` : 'Otevíráme externí odkaz...';
       }
 
-      if (option.reaction && reactionEl) {
-        reactionEl.textContent = option.reaction;
-        reactionEl.classList.add('visible');
-      }
-
       if (stepId === 1) {
         saveLegacyAvailability(option.text);
       }
@@ -789,10 +792,6 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
   });
 
   card.appendChild(optionsWrap);
-
-  const reactionEl = document.createElement('p');
-  reactionEl.className = 'step-reaction';
-  card.appendChild(reactionEl);
 }
 
 function renderInfoStep(stepId, step, card, showStep, state) {
@@ -982,6 +981,7 @@ function saveLegacyAvailabilityValue(answer) {
 function initFunFactBox() {
   if (hasInitializedFunFactBox) return;
   if (!document.body) return;
+  if (!document.getElementById('questionnaire-flow')) return;
 
   const factBox = document.createElement('p');
   factBox.id = 'fun-fact-box';
@@ -991,7 +991,7 @@ function initFunFactBox() {
   document.body.appendChild(factBox);
   hasInitializedFunFactBox = true;
   requestAnimationFrame(() => {
-    factBox.classList.add('visible');
+    updateFunFactVisibility(1);
   });
 }
 
