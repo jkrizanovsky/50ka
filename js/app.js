@@ -641,7 +641,9 @@ function updateFunFactVisibility(stepId) {
   const factBox = document.getElementById('fun-fact-box');
   if (!factBox) return;
   const factIndex = FUN_FACT_STEP_ORDER.indexOf(stepId);
-  const nextFact = factIndex === -1 ? '' : FUN_FACTS[factIndex];
+  const nextFact = factIndex === -1 || factIndex >= FUN_FACTS.length
+    ? ''
+    : FUN_FACTS[factIndex];
 
   factBox.textContent = nextFact;
   factBox.classList.toggle('visible', !FUN_FACT_HIDDEN_STEPS.has(stepId) && Boolean(nextFact));
