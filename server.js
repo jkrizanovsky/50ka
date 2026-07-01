@@ -68,6 +68,14 @@ function normalizeAnswers(answers) {
     .filter((entry) => entry.question && entry.answer);
 }
 
+function getSubmittedContactField(contact, fieldName, directValue) {
+  if (contact && typeof contact === 'object' && !Array.isArray(contact)) {
+    return contact[fieldName] ?? directValue;
+  }
+
+  return directValue;
+}
+
 function isLoopbackRequest(ipAddress = '') {
   return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(ipAddress);
 }
@@ -95,7 +103,13 @@ function requireAdminAccess(req, res, next) {
   let password = '';
 
   try {
-    [username, password] = Buffer.from(encoded, 'base64').toString('utf8').split(':');
+    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
+    const separatorIndex = decoded.indexOf(':');
+    if (separatorIndex === -1) {
+      throw new Error('Missing separator');
+    }
+    username = decoded.slice(0, separatorIndex);
+    password = decoded.slice(separatorIndex + 1);
   } catch {
     res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
     return res.status(401).send('Invalid credentials.');
@@ -203,9 +217,9 @@ app.post('/api/response', writeLimiter, (req, res) => {
   };
   const normalizedChoice = choiceMap[choice] || null;
   const normalizedAnswers = normalizeAnswers(answers);
-  const normalizedName = normalizeOptionalText(contact?.name ?? name, MAX_NAME_LENGTH);
-  const normalizedEmail = normalizeOptionalText(contact?.email ?? email, MAX_EMAIL_LENGTH);
-  const normalizedPhone = normalizeOptionalText(contact?.phone ?? phone, MAX_PHONE_LENGTH);
+  const normalizedName = normalizeOptionalText(getSubmittedContactField(contact, 'name', name), MAX_NAME_LENGTH);
+  const normalizedEmail = normalizeOptionalText(getSubmittedContactField(contact, 'email', email), MAX_EMAIL_LENGTH);
+  const normalizedPhone = normalizeOptionalText(getSubmittedContactField(contact, 'phone', phone), MAX_PHONE_LENGTH);
 
   upsertStmt.run({
     userId,
