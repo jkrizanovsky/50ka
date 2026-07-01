@@ -495,11 +495,11 @@ html:has(body.questionnaire-locked) {
 }
 
 .step-side-image-left {
-  left: clamp(0.4rem, 2vw, 2.5rem);
+  left: 0;
 }
 
 .step-side-image-right {
-  right: clamp(0.4rem, 2vw, 2.5rem);
+  right: 0;
 }
 
 .step-card.visible {
@@ -706,7 +706,16 @@ html:has(body.questionnaire-locked) {
   }
 
   .title-row {
-    grid-template-columns: auto calc(var(--title-number-height) * 1.6);
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .title-text-container {
+    justify-content: center;
+  }
+
+  .title-number-container {
+    justify-content: center;
   }
 
   #scroll-cue {
@@ -733,8 +742,17 @@ html:has(body.questionnaire-locked) {
   }
 
   #face-bottom-group {
-    bottom: clamp(1rem, 3vw, 2rem);
+    bottom: clamp(3rem, 8vh, 6rem);
     max-width: calc(100% - 1.5rem);
+  }
+
+  .step-side-images {
+    display: none;
+  }
+
+  .final-form-field input {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
   }
 
   .availability-buttons {
