@@ -487,9 +487,9 @@ html:has(body.questionnaire-locked) {
 .step-side-image {
   position: absolute;
   bottom: 0;
-  height: min(100vh, 100dvh);
+  height: clamp(320px, 76vh, 820px);
   width: auto;
-  max-width: 48vw;
+  max-width: clamp(180px, 34vw, 420px);
   object-fit: contain;
   object-position: center bottom;
 }
