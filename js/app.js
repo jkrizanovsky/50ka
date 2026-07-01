@@ -36,11 +36,22 @@ let hasMadeFaceChoice = false;
 let hasInitializedFunFactBox = false;
 const FUN_FACT_HIDDEN_STEPS = new Set([97, 98, 99]);
 
-const FUN_FACT_PLACEHOLDERS = [
-  'Fun fact: sem přijde krátký zajímavý detail.',
-  'Fun fact: tady bude prostor pro další perličku.',
-  'Fun fact: později sem doplníme opravdový fakt.',
+const FUN_FACTS = [
+  '50 let je v přepočtu přes 26 milionů minut. Dohromady to tedy znamená že naši oslavenci již strávili na zemi přes 52 milionů minut života.',
+  'Kdyby průměrný člověk ušel 25 km za den, za 50 let by ušel 547 875 km. Takže pokud dnes Petr vyrazí, bude další oslava na měsíci.',
+  'Lenka se narodila ve stejný den jako Andrej Ševčenko, naopak Petr má stejné narozeniny jako Alfred Hitchcock... jen teda o 77 let později.',
+  'Kdyby se rozhodlo přijít 100 plejtváků obrovských, museli bychom zarezervovat 2 fotbalová hřiště a cca 1000 tun planktonu.',
+  '50 průměrných dětí by dokázalo utáhnout 1 osobní auto do mírného kopce. Dotazy jak jsme zajistili odvoz nepřijímáme!!!',
+  'nejrychlejší jedlík historie by za 25 let dokázal spořádat přes 109 milionů párků, pokud by to chtěl někdy zkusit, Lenka nakoupí párky.',
+  'nejstarší maso pozřené člověkem bylo z 50 000 let starého bizona, uchovaného v permafrostu. Američtí vědci si z něj udělali guláš.',
+  'Letos slaví 50 let krom Petra a Lenky i legendární Pito, to naštěstí nepodáváme. Co se týče piva, dokonce 100 let letos slaví Stella Artois.',
+  'Výročí 50 let od založení letos slaví U2, The Clash a The Cure. Dohromady ti tyto tři kapely přinesou přes 50 hodin kvalitní muziky.',
+  'Bohužel na 50 let člověk usnout nemůže, oficiální rekord dokázali nezávisle na sobě dva chlapci a pohybuje se okolo 11 nepřetržitých dní.',
+  'Kdyby se jelo příštích 50 let nepřetržitě autem za rychlosti 100km/h, byla by další oslava dokonce na Venuši, snad to děti... ehm řidič zvládne.',
+  'Na přípravu jednoho espressa v průměru padne 50 zrnek kávy. Průměrný kávovník by tedy vyprodukoval pouhých 4000 espress za 50 let.',
 ];
+
+const FUN_FACT_STEP_ORDER = [1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
 
 /* ============================================================
    CYCLING NUMBER IMAGE
@@ -360,6 +371,7 @@ const formSteps = {
       { text: 'Metal', reaction: 'Něco se pro tebe najde', nextId: 11 },
       { text: 'Punk', reaction: 'Něco se pro tebe najde', nextId: 11 },
       { text: 'Dechmetal', reaction: 'Tak to budeš muset donést vlastní fujaru', nextId: 11 },
+      { text: 'jiné', reaction: 'Něco se pro tebe najde', nextId: 11 },
     ],
   },
   11: {
@@ -628,7 +640,11 @@ function initAvailabilityPage() {
 function updateFunFactVisibility(stepId) {
   const factBox = document.getElementById('fun-fact-box');
   if (!factBox) return;
-  factBox.classList.toggle('visible', !FUN_FACT_HIDDEN_STEPS.has(stepId));
+  const factIndex = FUN_FACT_STEP_ORDER.indexOf(stepId);
+  const nextFact = factIndex === -1 ? '' : FUN_FACTS[factIndex];
+
+  factBox.textContent = nextFact;
+  factBox.classList.toggle('visible', !FUN_FACT_HIDDEN_STEPS.has(stepId) && Boolean(nextFact));
 }
 
 function createStepIllustration(stepId) {
@@ -986,7 +1002,7 @@ function initFunFactBox() {
   const factBox = document.createElement('p');
   factBox.id = 'fun-fact-box';
   factBox.className = 'fun-fact-box';
-  factBox.textContent = FUN_FACT_PLACEHOLDERS[Math.floor(Math.random() * FUN_FACT_PLACEHOLDERS.length)];
+  factBox.textContent = FUN_FACTS[0];
 
   document.body.appendChild(factBox);
   hasInitializedFunFactBox = true;
