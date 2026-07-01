@@ -873,9 +873,9 @@ function renderFinalForm(stepId, step, card, state) {
   const form = document.createElement('form');
   form.className = 'final-form availability-form';
 
-  step.fields.forEach((field) => {
+  step.fields.forEach((field, index) => {
     const fieldConfig = getFinalFormFieldConfig(field);
-    const inputId = `final-form-${fieldConfig.name}`;
+    const inputId = `final-form-${fieldConfig.name}-${index}`;
     const fieldWrap = document.createElement('label');
     fieldWrap.className = 'final-form-field';
     fieldWrap.htmlFor = inputId;

@@ -25,12 +25,6 @@ const MAX_ANSWER_TEXT_LENGTH = 300;
 const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
-const RESPONSE_TEXT_COLUMNS = new Map([
-  ['name', 'TEXT'],
-  ['email', 'TEXT'],
-  ['phone', 'TEXT'],
-  ['answers_json', 'TEXT'],
-]);
 
 // Ensure db/ directory exists
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
@@ -38,15 +32,14 @@ if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
 /* ---------- Database ---------- */
 const db = new Database(DB_PATH);
 
-function ensureColumn(columnName, columnDefinition) {
-  if (RESPONSE_TEXT_COLUMNS.get(columnName) !== columnDefinition) {
-    throw new Error(`Unsupported response column: ${columnName}`);
-  }
+function ensureResponseColumns() {
   const columns = db.prepare('PRAGMA table_info(responses)').all();
-  const hasColumn = columns.some((column) => column.name === columnName);
-  if (!hasColumn) {
-    db.exec(`ALTER TABLE responses ADD COLUMN ${columnName} ${columnDefinition}`);
-  }
+  const hasColumn = (columnName) => columns.some((column) => column.name === columnName);
+
+  if (!hasColumn('name')) db.exec('ALTER TABLE responses ADD COLUMN name TEXT');
+  if (!hasColumn('email')) db.exec('ALTER TABLE responses ADD COLUMN email TEXT');
+  if (!hasColumn('phone')) db.exec('ALTER TABLE responses ADD COLUMN phone TEXT');
+  if (!hasColumn('answers_json')) db.exec('ALTER TABLE responses ADD COLUMN answers_json TEXT');
 }
 
 function normalizeOptionalText(value, maxLength = MAX_ANSWER_TEXT_LENGTH) {
@@ -146,10 +139,7 @@ db.exec(`
   CREATE UNIQUE INDEX IF NOT EXISTS idx_user ON responses(user_id);
 `);
 
-ensureColumn('name', 'TEXT');
-ensureColumn('email', 'TEXT');
-ensureColumn('phone', 'TEXT');
-ensureColumn('answers_json', 'TEXT');
+ensureResponseColumns();
 
 const upsertStmt = db.prepare(`
   INSERT INTO responses (user_id, choice, available, name, email, phone, answers_json, timestamp)
@@ -241,7 +231,20 @@ app.post('/api/response', writeLimiter, (req, res) => {
 
 /* GET /api/responses — read all responses (admin use) */
 app.get('/api/responses', readLimiter, requireAdminAccess, (req, res) => {
-  const rows = db.prepare('SELECT * FROM responses ORDER BY datetime(timestamp) DESC, datetime(created_at) DESC').all();
+  const rows = db.prepare(`
+    SELECT
+      id,
+      choice,
+      available,
+      name,
+      email,
+      phone,
+      answers_json,
+      timestamp,
+      created_at
+    FROM responses
+    ORDER BY datetime(timestamp) DESC, datetime(created_at) DESC
+  `).all();
   res.json(rows);
 });
 
