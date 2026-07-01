@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin odpovědi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body class="questionnaire-locked admin-page">
+  <main class="admin-layout">
+    <header class="admin-header">
+      <h1 class="availability-question chrome-text">Admin odpovědi</h1>
+      <p class="questionnaire-subtitle">Přehled všech odpovědí, kontaktů a souhrnných grafů.</p>
+    </header>
+
+    <section class="admin-content" aria-label="Přehled odpovědí">
+      <article class="admin-panel admin-chart-panel">
+        <div class="admin-panel-head">
+          <h2 class="step-question">Koláčový graf</h2>
+          <label class="admin-select-wrap">
+            <span>Zobrazit odpověď</span>
+            <select id="chart-field-select" class="admin-select"></select>
+          </label>
+        </div>
+        <div class="admin-chart-wrap">
+          <canvas id="answers-chart" width="420" height="420" aria-label="Koláčový graf odpovědí"></canvas>
+          <ul id="chart-legend" class="chart-legend"></ul>
+        </div>
+      </article>
+
+      <article class="admin-panel admin-list-panel">
+        <div class="admin-panel-head">
+          <h2 class="step-question">Seznam odpovědí</h2>
+          <p id="responses-count" class="admin-count"></p>
+        </div>
+        <div id="responses-list" class="responses-list" aria-live="polite"></div>
+      </article>
+    </section>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
