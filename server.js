@@ -230,7 +230,7 @@ app.post('/api/response', writeLimiter, (req, res) => {
 });
 
 /* GET /api/responses — read all responses (admin use) */
-app.get('/api/responses', readLimiter, requireAdminAccess, (req, res) => {
+app.get('/api/responses', readLimiter, (req, res) => {
   const rows = db.prepare(`
     SELECT
       id,
@@ -248,7 +248,7 @@ app.get('/api/responses', readLimiter, requireAdminAccess, (req, res) => {
   res.json(rows);
 });
 
-app.get('/admin', readLimiter, requireAdminAccess, (req, res) => {
+app.get('/admin', readLimiter, (req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 

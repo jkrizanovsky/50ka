@@ -929,7 +929,13 @@ function renderFinalForm(stepId, step, card, state) {
       input.disabled = true;
     });
 
-    const wasSaved = await submitQuestionnaireResponse(state, contact);
+    let wasSaved = false;
+    try {
+      wasSaved = await submitQuestionnaireResponse(state, contact);
+    } catch {
+      wasSaved = false;
+    }
+
     if (!wasSaved) {
       statusEl.textContent = 'Odeslání se nepovedlo, zkus to prosím znovu.';
       submitBtn.disabled = false;
@@ -1038,7 +1044,11 @@ function buildQuestionnairePayload(state, contact) {
 async function submitQuestionnaireResponse(state, contact) {
   const payload = buildQuestionnairePayload(state, contact);
 
-  localStorage.setItem('50ka_response', JSON.stringify(payload));
+  try {
+    localStorage.setItem('50ka_response', JSON.stringify(payload));
+  } catch {
+    // localStorage may be unavailable (e.g. private browsing); continue anyway
+  }
 
   try {
     const response = await fetch('/api/response', {
