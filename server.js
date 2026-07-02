@@ -24,12 +24,20 @@ const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
 const TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 98]);
+const FACE_CHOICE_LABEL = 'Koho máš raději?';
+const CONTACT_FIELDS = [
+  { fieldKey: 'contact-name', label: 'Jméno', sortOrder: 9000 },
+  { fieldKey: 'contact-email', label: 'Email', sortOrder: 9001 },
+  { fieldKey: 'contact-phone', label: 'Telefon', sortOrder: 9002 },
+];
 
 // Ensure db/ directory exists
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
 
 /* ---------- Database ---------- */
 const db = new Database(DB_PATH);
+db.pragma('journal_mode = WAL');
+db.pragma('busy_timeout = 5000');
 
 function ensureResponseColumns() {
   const columns = db.prepare('PRAGMA table_info(responses)').all();
@@ -67,6 +75,74 @@ function normalizeAnswers(answers) {
     .filter((entry) => entry.question && entry.answer);
 }
 
+function formatStoredChoice(choice) {
+  const map = {
+    lenku: 'Lenku',
+    petra: 'Petra',
+    nezadano: 'Nezadáno',
+  };
+  return map[choice] || null;
+}
+
+function formatStoredAvailability(available) {
+  const map = {
+    ano: 'Ano',
+    ne: 'Ne',
+    uvidime: 'Uvidíme',
+  };
+  return map[available] || null;
+}
+
+function buildResponseFields({ choice, available, name, email, phone, answers }) {
+  const fields = [];
+  const storedChoice = formatStoredChoice(choice);
+  const storedAvailability = formatStoredAvailability(available);
+
+  if (storedChoice) {
+    fields.push({
+      fieldKey: 'face-choice',
+      label: FACE_CHOICE_LABEL,
+      value: storedChoice,
+      sortOrder: 0,
+    });
+  }
+
+  if (storedAvailability) {
+    fields.push({
+      fieldKey: 'attendance',
+      label: 'Účast 12.9.',
+      value: storedAvailability,
+      sortOrder: 1,
+    });
+  }
+
+  answers.forEach((answer) => {
+    fields.push({
+      fieldKey: `step-${answer.stepId}`,
+      label: answer.question,
+      value: answer.answer,
+      sortOrder: answer.stepId,
+    });
+  });
+
+  CONTACT_FIELDS.forEach(({ fieldKey, label, sortOrder }) => {
+    const fieldValue = (
+      fieldKey === 'contact-name' ? name
+        : fieldKey === 'contact-email' ? email
+          : phone
+    );
+    if (!fieldValue) return;
+    fields.push({
+      fieldKey,
+      label,
+      value: fieldValue,
+      sortOrder,
+    });
+  });
+
+  return fields;
+}
+
 function getSubmittedContactField(contact, fieldName, directValue) {
   if (contact && typeof contact === 'object' && !Array.isArray(contact)) {
     return contact[fieldName] ?? directValue;
@@ -92,6 +168,20 @@ db.exec(`
 
   -- One row per unique user (upsert on arrival)
   CREATE UNIQUE INDEX IF NOT EXISTS idx_user ON responses(user_id);
+
+  CREATE TABLE IF NOT EXISTS response_fields (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT    NOT NULL,
+    field_key  TEXT    NOT NULL,
+    label      TEXT    NOT NULL,
+    value      TEXT,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(user_id, field_key)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_response_fields_user ON response_fields(user_id);
 `);
 
 ensureResponseColumns();
@@ -109,6 +199,30 @@ const upsertStmt = db.prepare(`
     timestamp    = excluded.timestamp
 `);
 
+const clearResponseFieldsStmt = db.prepare(`
+  DELETE FROM response_fields
+  WHERE user_id = ?
+`);
+
+const insertResponseFieldStmt = db.prepare(`
+  INSERT INTO response_fields (user_id, field_key, label, value, sort_order, updated_at)
+  VALUES (@userId, @fieldKey, @label, @value, @sortOrder, datetime('now'))
+`);
+
+const saveResponseTransaction = db.transaction((responseData, responseFields) => {
+  upsertStmt.run(responseData);
+  clearResponseFieldsStmt.run(responseData.userId);
+  responseFields.forEach((field) => {
+    insertResponseFieldStmt.run({
+      userId: responseData.userId,
+      fieldKey: field.fieldKey,
+      label: field.label,
+      value: field.value,
+      sortOrder: field.sortOrder,
+    });
+  });
+});
+
 /* ---------- Express app ---------- */
 const app = express();
 app.use(express.json());
@@ -118,10 +232,10 @@ app.use(express.static(path.join(__dirname)));
 /* Rate limiters */
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20,                   // max 20 writes per IP per window
+  max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  message: { error: 'Too many requests, please try again later.' },
+  message: { error: 'Nyní nelze odeslat, zkus to prosím za chvilku znovu.' },
 });
 
 const readLimiter = rateLimit({
@@ -169,8 +283,7 @@ app.post('/api/response', writeLimiter, (req, res) => {
   const normalizedName = normalizeOptionalText(getSubmittedContactField(contact, 'name', name), MAX_NAME_LENGTH);
   const normalizedEmail = normalizeOptionalText(getSubmittedContactField(contact, 'email', email), MAX_EMAIL_LENGTH);
   const normalizedPhone = normalizeOptionalText(getSubmittedContactField(contact, 'phone', phone), MAX_PHONE_LENGTH);
-
-  upsertStmt.run({
+  const responseData = {
     userId,
     choice: normalizedChoice || null,
     available: available || null,
@@ -179,9 +292,23 @@ app.post('/api/response', writeLimiter, (req, res) => {
     phone: normalizedPhone,
     answersJson: JSON.stringify(normalizedAnswers),
     timestamp: timestamp || new Date().toISOString(),
+  };
+  const responseFields = buildResponseFields({
+    choice: responseData.choice,
+    available: responseData.available,
+    name: normalizedName,
+    email: normalizedEmail,
+    phone: normalizedPhone,
+    answers: normalizedAnswers,
   });
 
-  res.json({ ok: true });
+  try {
+    saveResponseTransaction(responseData, responseFields);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to save response:', error);
+    res.status(500).json({ error: 'Nepodařilo se uložit odpověď, zkus to prosím znovu.' });
+  }
 });
 
 /* GET /api/responses — read all responses (admin use) */
@@ -189,6 +316,7 @@ app.get('/api/responses', readLimiter, (req, res) => {
   const rows = db.prepare(`
     SELECT
       id,
+      user_id,
       choice,
       available,
       name,
@@ -200,7 +328,34 @@ app.get('/api/responses', readLimiter, (req, res) => {
     FROM responses
     ORDER BY LOWER(COALESCE(name, '')) ASC, datetime(created_at) ASC
   `).all();
-  res.json(rows);
+  const answerFields = db.prepare(`
+    SELECT
+      user_id,
+      field_key,
+      label,
+      value,
+      sort_order
+    FROM response_fields
+    ORDER BY sort_order ASC, id ASC
+  `).all();
+  const fieldsByUserId = new Map();
+
+  answerFields.forEach((field) => {
+    if (!fieldsByUserId.has(field.user_id)) {
+      fieldsByUserId.set(field.user_id, []);
+    }
+    fieldsByUserId.get(field.user_id).push({
+      fieldKey: field.field_key,
+      label: field.label,
+      value: field.value,
+      sortOrder: field.sort_order,
+    });
+  });
+
+  res.json(rows.map((row) => ({
+    ...row,
+    answer_fields: fieldsByUserId.get(row.user_id) || [],
+  })));
 });
 
 app.get('/admin', readLimiter, (req, res) => {
