@@ -25,7 +25,6 @@ const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
 const TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 98]);
-const NON_TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([97, 99]);
 
 // Ensure db/ directory exists
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
@@ -60,7 +59,6 @@ function normalizeAnswers(answers) {
       && typeof entry === 'object'
       && Number.isInteger(entry.stepId)
       && TRACKED_QUESTIONNAIRE_STEP_IDS.has(entry.stepId)
-      && !NON_TRACKED_QUESTIONNAIRE_STEP_IDS.has(entry.stepId)
     ))
     .map((entry) => ({
       stepId: entry.stepId,
