@@ -64,7 +64,7 @@ function formatChoice(choice) {
 }
 
 function getChartLabelForAnswer(answer) {
-  if (!answer || !Number.isInteger(answer.stepId)) return safeText(answer?.question, 'Otázka');
+  if (!answer || !Number.isInteger(answer.stepId)) return safeText(answer && answer.question, 'Otázka');
   return QUESTION_LABELS[answer.stepId] || safeText(answer.question, `Otázka ${answer.stepId}`);
 }
 
