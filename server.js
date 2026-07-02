@@ -12,7 +12,6 @@
 const express = require('express');
 const path    = require('path');
 const fs      = require('fs');
-const crypto  = require('crypto');
 const Database = require('better-sqlite3');
 const rateLimit = require('express-rate-limit');
 
@@ -74,55 +73,6 @@ function getSubmittedContactField(contact, fieldName, directValue) {
   }
 
   return directValue;
-}
-
-function requireAdminAccess(req, res, next) {
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminUsername || !adminPassword) {
-    return res.status(503).send('Admin page needs ADMIN_USERNAME and ADMIN_PASSWORD.');
-  }
-
-  const header = req.headers.authorization || '';
-  const [scheme, encoded] = header.split(' ');
-  if (scheme !== 'Basic' || !encoded) {
-    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
-    return res.status(401).send('Authentication required.');
-  }
-
-  let username = '';
-  let password = '';
-
-  try {
-    const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-    const separatorIndex = decoded.indexOf(':');
-    if (separatorIndex === -1) {
-      throw new Error('Missing separator');
-    }
-    username = decoded.slice(0, separatorIndex);
-    password = decoded.slice(separatorIndex + 1);
-  } catch {
-    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
-    return res.status(401).send('Invalid credentials.');
-  }
-
-  const providedUsername = Buffer.from(username);
-  const providedPassword = Buffer.from(password);
-  const expectedUsername = Buffer.from(adminUsername);
-  const expectedPassword = Buffer.from(adminPassword);
-
-  const isUsernameMatch = providedUsername.length === expectedUsername.length
-    && crypto.timingSafeEqual(providedUsername, expectedUsername);
-  const isPasswordMatch = providedPassword.length === expectedPassword.length
-    && crypto.timingSafeEqual(providedPassword, expectedPassword);
-
-  if (!isUsernameMatch || !isPasswordMatch) {
-    res.set('WWW-Authenticate', 'Basic realm="50ka admin"');
-    return res.status(401).send('Invalid credentials.');
-  }
-
-  return next();
 }
 
 // Create table if it doesn't exist
@@ -248,7 +198,7 @@ app.get('/api/responses', readLimiter, (req, res) => {
       timestamp,
       created_at
     FROM responses
-    ORDER BY datetime(timestamp) DESC, datetime(created_at) DESC
+    ORDER BY LOWER(COALESCE(name, '')) ASC, datetime(created_at) ASC
   `).all();
   res.json(rows);
 });
