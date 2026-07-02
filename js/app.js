@@ -1123,7 +1123,7 @@ async function readResponsePayload(response) {
 async function postQuestionnairePayload(payload) {
   for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt += 1) {
     try {
-      const response = await fetch('/api/response', {
+      const response = await fetch('https://50ka-backend-xxxx.up.railway.app/api/response', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

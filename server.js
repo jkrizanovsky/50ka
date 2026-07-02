@@ -11,14 +11,6 @@
 
 const express = require('express');
 const cors = require('cors');
-
-// Allow requests from GitHub Pages
-app.use(cors({
-  origin: 'https://jkrizanovsky.github.io',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true,
-  allowedHeaders: ['Content-Type']
-}));
 const path    = require('path');
 const fs      = require('fs');
 const Database = require('better-sqlite3');
@@ -284,6 +276,15 @@ backfillResponseFields();
 
 /* ---------- Express app ---------- */
 const app = express();
+
+// Allow requests from GitHub Pages
+app.use(cors({
+  origin: 'https://jkrizanovsky.github.io',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  credentials: true,
+  allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 // Serve static files (HTML, CSS, JS, images) from project root
 app.use(express.static(path.join(__dirname)));
