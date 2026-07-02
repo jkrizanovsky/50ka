@@ -18,8 +18,8 @@ const rateLimit = require('express-rate-limit');
 
 /* ---------- Setup ---------- */
 const PORT   = process.env.PORT || 3000;
-const DB_DIR = path.join(__dirname, 'db');
-const DB_PATH = path.join(DB_DIR, 'responses.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'db', 'responses.db');
+const DB_DIR  = path.dirname(DB_PATH);
 const MAX_ANSWER_TEXT_LENGTH = 300;
 const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
@@ -33,7 +33,7 @@ const CONTACT_FIELDS = [
 ];
 
 // Ensure db/ directory exists
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
 /* ---------- Database ---------- */
 const db = new Database(DB_PATH);
