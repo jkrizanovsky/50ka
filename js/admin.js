@@ -260,7 +260,7 @@ function createAnswerRow(label, value) {
 }
 
 function getResponseTimestamp(response) {
-  return safeText(response.timestamp || response.created_at, '—');
+  return safeText(response.timestamp ?? response.created_at, '—');
 }
 
 function createResponseCard(response) {

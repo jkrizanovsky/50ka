@@ -1002,7 +1002,8 @@ html:has(body.questionnaire-locked) {
   }
 
   .step-card[data-step-id="97"] {
-    width: 75%;
+    width: min(75%, 24rem);
+    min-width: min(100%, 16rem);
   }
 
   .step-question {
