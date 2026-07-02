@@ -296,7 +296,23 @@ function initAdminPage() {
       empty.className = 'admin-empty';
       empty.textContent = safeText(error.message, 'Nepodařilo se načíst odpovědi.');
       listEl.replaceChildren(empty);
-      drawPieChart(canvas, []);
+
+      STATIC_FIELDS.forEach((field) => {
+        const option = document.createElement('option');
+        option.value = field.key;
+        option.textContent = field.label;
+        selectEl.appendChild(option);
+      });
+
+      const renderChartForField = () => {
+        drawPieChart(canvas, []);
+        renderLegend(legendEl, []);
+      };
+      if (STATIC_FIELDS.length) {
+        selectEl.value = STATIC_FIELDS[0].key;
+        selectEl.addEventListener('change', renderChartForField);
+      }
+      renderChartForField();
     });
 }
 
