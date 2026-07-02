@@ -1,0 +1,9 @@
+exclude:
+  - server.js
+  - package.json
+  - package-lock.json
+  - db/
+  - README.md
+  - "*.log"
+  - .env
+  - node_modules/
