@@ -259,44 +259,95 @@ function createAnswerRow(label, value) {
   return item;
 }
 
-function renderResponsesList(listEl, countEl, responses) {
+function getResponseTimestamp(response) {
+  return safeText(response.timestamp ?? response.created_at, '—');
+}
+
+function createResponseCard(response) {
+  const card = document.createElement('article');
+  card.className = 'response-card';
+
+  const title = document.createElement('h3');
+  title.className = 'response-card-title';
+  title.textContent = response.name;
+
+  const meta = document.createElement('div');
+  meta.className = 'response-meta';
+  meta.append(
+    createMetaRow('Email', response.email),
+    createMetaRow('Telefon', response.phone),
+    createMetaRow('Odesláno', getResponseTimestamp(response)),
+    createMetaRow('Volba obličeje', response.choice),
+    createMetaRow('Účast 12.9.', response.available),
+  );
+
+  const answersList = document.createElement('ul');
+  answersList.className = 'response-answers';
+  response.answers.forEach((answer) => {
+    answersList.appendChild(createAnswerRow(answer.question, answer.answer));
+  });
+
+  card.append(title, meta, answersList);
+  return card;
+}
+
+function renderResponseDetail(detailEl, response, emptyMessage = 'Klikni na jméno v seznamu a zobrazí se detail odpovědi.') {
+  detailEl.replaceChildren();
+
+  if (!response) {
+    const empty = document.createElement('p');
+    empty.className = 'admin-empty';
+    empty.textContent = emptyMessage;
+    detailEl.appendChild(empty);
+    return;
+  }
+
+  detailEl.appendChild(createResponseCard(response));
+}
+
+function renderResponsesList(listEl, detailEl, countEl, responses) {
   listEl.replaceChildren();
   countEl.textContent = `${responses.length} odpovědí`;
+  renderResponseDetail(detailEl, null);
 
   if (!responses.length) {
     const empty = document.createElement('p');
     empty.className = 'admin-empty';
     empty.textContent = 'Zatím tu nejsou žádné odpovědi.';
     listEl.appendChild(empty);
+    renderResponseDetail(detailEl, null, 'Zatím tu nejsou žádné odpovědi.');
     return;
   }
 
-  responses.forEach((response) => {
-    const card = document.createElement('article');
-    card.className = 'response-card';
+  let activeButton = null;
 
-    const title = document.createElement('h3');
-    title.className = 'response-card-title';
+  responses.forEach((response) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'response-list-item';
+
+    const title = document.createElement('span');
+    title.className = 'response-list-item-title';
     title.textContent = response.name;
 
-    const meta = document.createElement('div');
-    meta.className = 'response-meta';
-    meta.append(
-      createMetaRow('Email', response.email),
-      createMetaRow('Telefon', response.phone),
-      createMetaRow('Odesláno', response.timestamp || response.created_at || '—'),
-      createMetaRow('Volba obličeje', response.choice),
-      createMetaRow('Účast 12.9.', response.available),
-    );
+    const meta = document.createElement('span');
+    meta.className = 'response-list-item-meta';
+    meta.textContent = getResponseTimestamp(response);
 
-    const answersList = document.createElement('ul');
-    answersList.className = 'response-answers';
-    response.answers.forEach((answer) => {
-      answersList.appendChild(createAnswerRow(answer.question, answer.answer));
+    button.append(title, meta);
+    button.addEventListener('click', () => {
+      if (activeButton) {
+        activeButton.classList.remove('active');
+        activeButton.setAttribute('aria-pressed', 'false');
+      }
+      button.classList.add('active');
+      button.setAttribute('aria-pressed', 'true');
+      activeButton = button;
+      renderResponseDetail(detailEl, response);
     });
 
-    card.append(title, meta, answersList);
-    listEl.appendChild(card);
+    button.setAttribute('aria-pressed', 'false');
+    listEl.appendChild(button);
   });
 }
 
@@ -305,9 +356,10 @@ function initAdminPage() {
   const canvas = document.getElementById('answers-chart');
   const legendEl = document.getElementById('chart-legend');
   const listEl = document.getElementById('responses-list');
+  const detailEl = document.getElementById('response-detail');
   const countEl = document.getElementById('responses-count');
 
-  if (!selectEl || !canvas || !legendEl || !listEl || !countEl) return;
+  if (!selectEl || !canvas || !legendEl || !listEl || !detailEl || !countEl) return;
 
   fetch('https://50ka-backend-production.up.railway.app/api/responses')
     .then((response) => {
@@ -318,7 +370,7 @@ function initAdminPage() {
       const responses = normalizeResponses(rows);
       const fields = buildFilterFields(responses);
 
-      renderResponsesList(listEl, countEl, responses);
+      renderResponsesList(listEl, detailEl, countEl, responses);
 
       if (!fields.length) {
         drawPieChart(canvas, []);
@@ -349,6 +401,7 @@ function initAdminPage() {
       empty.className = 'admin-empty';
       empty.textContent = safeText(error.message, 'Nepodařilo se načíst odpovědi.');
       listEl.replaceChildren(empty);
+      renderResponseDetail(detailEl, null, empty.textContent);
 
       LEGACY_STATIC_FIELDS.forEach((field) => {
         const option = document.createElement('option');

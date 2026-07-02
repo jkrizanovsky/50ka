@@ -39,7 +39,12 @@
           <h2 class="step-question">Seznam odpovědí</h2>
           <p id="responses-count" class="admin-count"></p>
         </div>
-        <div id="responses-list" class="responses-list" aria-live="polite"></div>
+        <div class="admin-responses-layout">
+          <div id="responses-list" class="responses-list" aria-live="polite"></div>
+          <section id="response-detail" class="response-detail" aria-live="polite">
+            <p class="admin-empty">Klikni na jméno v seznamu a zobrazí se detail odpovědi.</p>
+          </section>
+        </div>
       </article>
     </section>
   </main>

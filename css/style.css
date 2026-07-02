@@ -815,6 +815,65 @@ html:has(body.questionnaire-locked) {
   gap: 0.9rem;
 }
 
+.admin-responses-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.response-detail {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.response-list-item {
+  width: 100%;
+  border: 2px solid #111;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.85rem 0.95rem;
+  display: grid;
+  gap: 0.3rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  box-shadow: 4px 4px 0 #111;
+}
+
+.response-list-item:hover,
+.response-list-item:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 #111;
+}
+
+.response-list-item:focus-visible {
+  outline: 3px solid #5a2f84;
+  outline-offset: 2px;
+}
+
+.response-list-item.active {
+  border-color: #5a2f84;
+  box-shadow: 4px 4px 0 #5a2f84;
+  background: #fdf8ff;
+}
+
+.response-list-item-title,
+.response-list-item-meta {
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.response-list-item-title {
+  font-weight: 700;
+  color: #111;
+}
+
+.response-list-item-meta {
+  color: #5a5a5a;
+  font-size: 0.92rem;
+}
+
 .response-card {
   border: 2px solid #111;
   border-radius: 12px;
@@ -942,6 +1001,11 @@ html:has(body.questionnaire-locked) {
     padding: 0.625rem;
   }
 
+  .step-card[data-step-id="97"] {
+    width: min(75%, 24rem);
+    min-width: min(100%, 16rem);
+  }
+
   .step-question {
     font-size: clamp(0.85rem, 2.5vw, 1.375rem);
     letter-spacing: 0.2px;
@@ -1001,6 +1065,10 @@ html:has(body.questionnaire-locked) {
   }
 
   .admin-chart-wrap {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-responses-layout {
     grid-template-columns: 1fr;
   }
 }
