@@ -232,45 +232,45 @@ const saveResponseTransaction = db.transaction((responseData, responseFields) =>
       sortOrder: field.sortOrder,
     });
   });
-
-  function backfillResponseFields() {
-    const rows = db.prepare(`
-      SELECT user_id, choice, available, name, email, phone, answers_json, timestamp
-      FROM responses
-    `).all();
-
-    rows.forEach((row) => {
-      const existingCount = db.prepare(`
-        SELECT COUNT(*) AS count
-        FROM response_fields
-        WHERE user_id = ?
-      `).get(row.user_id)?.count || 0;
-      if (existingCount > 0) return;
-
-      const responseData = {
-        userId: row.user_id,
-        choice: row.choice,
-        available: row.available,
-        name: row.name,
-        email: row.email,
-        phone: row.phone,
-        answersJson: row.answers_json,
-        timestamp: row.timestamp || new Date().toISOString(),
-      };
-      const responseFields = buildResponseFields({
-        choice: row.choice,
-        available: row.available,
-        name: row.name,
-        email: row.email,
-        phone: row.phone,
-        answers: parseStoredAnswers(row.answers_json),
-      });
-      saveResponseTransaction(responseData, responseFields);
-    });
-  }
-
-  backfillResponseFields();
 });
+
+function backfillResponseFields() {
+  const rows = db.prepare(`
+    SELECT user_id, choice, available, name, email, phone, answers_json, timestamp
+    FROM responses
+  `).all();
+
+  rows.forEach((row) => {
+    const existingCount = db.prepare(`
+      SELECT COUNT(*) AS count
+      FROM response_fields
+      WHERE user_id = ?
+    `).get(row.user_id)?.count || 0;
+    if (existingCount > 0) return;
+
+    const responseData = {
+      userId: row.user_id,
+      choice: row.choice,
+      available: row.available,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      answersJson: row.answers_json,
+      timestamp: row.timestamp || new Date().toISOString(),
+    };
+    const responseFields = buildResponseFields({
+      choice: row.choice,
+      available: row.available,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      answers: parseStoredAnswers(row.answers_json),
+    });
+    saveResponseTransaction(responseData, responseFields);
+  });
+}
+
+backfillResponseFields();
 
 /* ---------- Express app ---------- */
 const app = express();
