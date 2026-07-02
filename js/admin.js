@@ -17,22 +17,23 @@ const STATIC_FIELDS = [
     label: 'Koho máš raději?',
     getValue: (response) => response.choice || 'nezadano',
   },
-  {
-    key: 'formName',
-    label: 'Jméno',
-    getValue: (response) => response.name || 'neuvedeno',
-  },
-  {
-    key: 'formEmail',
-    label: 'Email',
-    getValue: (response) => response.email || 'neuvedeno',
-  },
-  {
-    key: 'formPhone',
-    label: 'Telefon',
-    getValue: (response) => response.phone || 'neuvedeno',
-  },
 ];
+
+const QUESTION_LABELS = {
+  1: 'Účast 12.9.',
+  3: 'Přijdeš',
+  4: 'Čas příchodu',
+  5: 'Počet lidí',
+  6: 'Děti',
+  7: 'Jídlo',
+  8: 'Typ jídla',
+  9: 'Pití',
+  10: 'Hudba',
+  11: 'Přespání',
+  12: 'Odvoz',
+  13: 'Snídaně',
+  98: 'Podpora dobra',
+};
 
 function safeText(value, fallback = '—') {
   if (value == null) return fallback;
@@ -62,6 +63,11 @@ function formatChoice(choice) {
   return map[choice] || safeText(choice, 'Nezadáno');
 }
 
+function getChartLabelForAnswer(answer) {
+  if (!answer || !Number.isInteger(answer.stepId)) return safeText(answer && answer.question, 'Otázka');
+  return QUESTION_LABELS[answer.stepId] || safeText(answer.question, `Otázka ${answer.stepId}`);
+}
+
 function normalizeResponses(rows) {
   return rows.map((row) => ({
     ...row,
@@ -83,7 +89,7 @@ function buildDynamicFields(responses) {
       if (!fields.has(key)) {
         fields.set(key, {
           key,
-          label: safeText(answer.question, `Otázka ${answer.stepId}`),
+          label: getChartLabelForAnswer(answer),
           getValue: (item) => {
             const found = item.answers.find((entry) => entry.stepId === answer.stepId);
             return safeText(found?.answer, 'bez odpovědi');
