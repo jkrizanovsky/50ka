@@ -1154,7 +1154,7 @@ async function postQuestionnairePayload(payload) {
   return {
     ok: false,
     message: navigator.onLine === false
-      ? 'Jsi offline, připoj se k internetu a zkus to prosím znovu.'
+      ? 'Vypadá to na problém s připojením, zkontroluj internet a zkus to prosím znovu.'
       : 'Odeslání se nepovedlo, zkus to prosím znovu.',
   };
 }

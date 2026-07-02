@@ -137,11 +137,12 @@ function buildResponseFields({ choice, available, name, email, phone, answers })
   });
 
   CONTACT_FIELDS.forEach(({ fieldKey, label, sortOrder }) => {
-    const fieldValue = (
-      fieldKey === 'contact-name' ? name
-        : fieldKey === 'contact-email' ? email
-          : phone
-    );
+    const fieldValueByKey = {
+      'contact-name': name,
+      'contact-email': email,
+      'contact-phone': phone,
+    };
+    const fieldValue = fieldValueByKey[fieldKey] || null;
     if (!fieldValue) return;
     fields.push({
       fieldKey,
