@@ -438,7 +438,7 @@ const formSteps = {
 };
 
 const QUESTIONNAIRE_STORAGE_KEY = '50ka_questionnaire';
-const QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT = 97;
+const NON_TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([97, 99]);
 const STEP_ILLUSTRATIONS = {
   1: {
     src: 'images/noding_petr.png',
@@ -1012,9 +1012,15 @@ function persistQuestionnaireState(state) {
   }));
 }
 
+function isTrackedQuestionnaireAnswer(entry) {
+  if (!entry || !Number.isInteger(entry.stepId)) return false;
+  if (NON_TRACKED_QUESTIONNAIRE_STEP_IDS.has(entry.stepId)) return false;
+  return Boolean(formSteps[entry.stepId]);
+}
+
 function getTrackedAnswers(answers) {
   return answers
-    .filter((entry) => Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT)
+    .filter((entry) => isTrackedQuestionnaireAnswer(entry))
     .map((entry) => ({
       stepId: entry.stepId,
       question: entry.question,

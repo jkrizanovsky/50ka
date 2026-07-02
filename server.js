@@ -20,11 +20,11 @@ const rateLimit = require('express-rate-limit');
 const PORT   = process.env.PORT || 3000;
 const DB_DIR = path.join(__dirname, 'db');
 const DB_PATH = path.join(DB_DIR, 'responses.db');
-const QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT = 97;
 const MAX_ANSWER_TEXT_LENGTH = 300;
 const MAX_NAME_LENGTH = 120;
 const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
+const NON_TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([97, 99]);
 
 // Ensure db/ directory exists
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR);
@@ -54,7 +54,13 @@ function normalizeAnswers(answers) {
   if (!Array.isArray(answers)) return [];
 
   return answers
-    .filter((entry) => entry && typeof entry === 'object' && Number.isInteger(entry.stepId) && entry.stepId < QUESTIONNAIRE_ANSWER_STEP_EXCLUSIVE_LIMIT)
+    .filter((entry) => (
+      entry
+      && typeof entry === 'object'
+      && Number.isInteger(entry.stepId)
+      && entry.stepId > 0
+      && !NON_TRACKED_QUESTIONNAIRE_STEP_IDS.has(entry.stepId)
+    ))
     .map((entry) => ({
       stepId: entry.stepId,
       question: normalizeOptionalText(entry.question, 200) || '',
