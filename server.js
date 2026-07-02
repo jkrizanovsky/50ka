@@ -277,9 +277,9 @@ backfillResponseFields();
 /* ---------- Express app ---------- */
 const app = express();
 
-// Allow requests from GitHub Pages
+// Allow requests from GitHub Pages (root domain and any subdirectory path)
 app.use(cors({
-  origin: 'https://jkrizanovsky.github.io',
+  origin: /^https:\/\/jkrizanovsky\.github\.io(\/.*)?$/,
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type']
