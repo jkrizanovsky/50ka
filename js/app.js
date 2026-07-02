@@ -35,6 +35,10 @@ const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
 let hasInitializedFunFactBox = false;
 const FUN_FACT_HIDDEN_STEPS = new Set([97, 98, 99]);
+const RESPONSE_STORAGE_KEY = '50ka_response';
+const PENDING_RESPONSE_STORAGE_KEY = '50ka_pending_response';
+const SUBMIT_RETRY_DELAY_MS = 900;
+const SUBMIT_MAX_ATTEMPTS = 2;
 
 const FUN_FACTS = [
   '50 let je v přepočtu přes 26 milionů minut. Dohromady to tedy znamená že naši oslavenci již strávili na zemi přes 52 milionů minut života.',
@@ -115,6 +119,9 @@ function initCyclingNumber() {
   const img = document.getElementById('cycling-img');
   if (!img) return;
 
+  img.decoding = 'async';
+  img.fetchPriority = 'high';
+
   // Pre-load images so there's no flash on swap
   Object.values(NUMBER_VARIANTS).flat().forEach((src) => {
     const preload = new Image();
@@ -172,13 +179,14 @@ function initScrollZoom() {
   const MIN_REVEAL_RANGE = 1;
   const OVERLAY_REVEAL_PROGRESS = 0.995;
   const scrollListenerOptions = { passive: true };
+  let isFrameQueued = false;
   function hideHelperHint() {
     if (faceHelperHint) {
       faceHelperHint.classList.remove('visible');
     }
   }
 
-  function onScroll() {
+  function updateScrollState() {
     const scrollY    = window.scrollY;
     const zoneTop    = zoomZone.offsetTop;
     const zoneHeight = zoomZone.offsetHeight;
@@ -229,16 +237,27 @@ function initScrollZoom() {
     }
   }
 
+  function onScroll() {
+    if (isFrameQueued) return;
+    isFrameQueued = true;
+    requestAnimationFrame(() => {
+      isFrameQueued = false;
+      updateScrollState();
+    });
+  }
+
   function cleanupScrollZoom() {
     hideHelperHint();
     window.removeEventListener('scroll', onScroll, scrollListenerOptions);
+    window.removeEventListener('resize', onScroll, scrollListenerOptions);
     window.removeEventListener('pagehide', cleanupScrollZoom);
   }
 
   window.addEventListener('scroll', onScroll, scrollListenerOptions);
+  window.addEventListener('resize', onScroll, scrollListenerOptions);
   window.addEventListener('pagehide', cleanupScrollZoom);
   // Run once on load in case page is already scrolled
-  onScroll();
+  updateScrollState();
 }
 
 /* ============================================================
@@ -511,7 +530,8 @@ function initQuestionnaireNumberBouncer() {
   let maxX = 0;
   let maxY = 0;
   let animationFrameId = null;
-  let isActive = true;
+  let isDestroyed = false;
+  let isAnimating = false;
 
   function recalculateBounds() {
     maxX = Math.max(0, window.innerWidth - bouncerEl.offsetWidth);
@@ -536,7 +556,7 @@ function initQuestionnaireNumberBouncer() {
   }
 
   function animate() {
-    if (!isActive) return;
+    if (!isAnimating || isDestroyed) return;
 
     posX += velocityX;
     posY += velocityY;
@@ -571,14 +591,36 @@ function initQuestionnaireNumberBouncer() {
     animationFrameId = requestAnimationFrame(animate);
   }
 
-  function cleanup() {
-    if (!isActive) return;
-    isActive = false;
-    window.removeEventListener('resize', clampInViewport);
-    window.removeEventListener('pagehide', cleanup);
+  function stopAnimation() {
+    isAnimating = false;
     if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId);
+      animationFrameId = null;
     }
+  }
+
+  function startAnimation() {
+    if (isDestroyed || isAnimating) return;
+    isAnimating = true;
+    animationFrameId = requestAnimationFrame(animate);
+  }
+
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      stopAnimation();
+      return;
+    }
+
+    startAnimation();
+  }
+
+  function cleanup() {
+    if (isDestroyed) return;
+    isDestroyed = true;
+    stopAnimation();
+    window.removeEventListener('resize', clampInViewport);
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('pagehide', cleanup);
   }
 
   posX = Math.max(0, (window.innerWidth - bouncerEl.offsetWidth) / 2);
@@ -589,8 +631,9 @@ function initQuestionnaireNumberBouncer() {
   clampInViewport();
 
   window.addEventListener('resize', clampInViewport, { passive: true });
+  document.addEventListener('visibilitychange', handleVisibilityChange);
   window.addEventListener('pagehide', cleanup);
-  animationFrameId = requestAnimationFrame(animate);
+  startAnimation();
 }
 
 function initAvailabilityPage() {
@@ -929,15 +972,15 @@ function renderFinalForm(stepId, step, card, state) {
       input.disabled = true;
     });
 
-    let wasSaved = false;
+    let submitResult = { ok: false, message: 'Odeslání se nepovedlo, zkus to prosím znovu.' };
     try {
-      wasSaved = await submitQuestionnaireResponse(state, contact);
+      submitResult = await submitQuestionnaireResponse(state, contact);
     } catch {
-      wasSaved = false;
+      submitResult = { ok: false, message: 'Odeslání se nepovedlo, zkus to prosím znovu.' };
     }
 
-    if (!wasSaved) {
-      statusEl.textContent = 'Odeslání se nepovedlo, zkus to prosím znovu.';
+    if (!submitResult.ok) {
+      statusEl.textContent = submitResult.message;
       submitBtn.disabled = false;
       form.querySelectorAll('input').forEach((input) => {
         input.disabled = false;
@@ -1047,26 +1090,90 @@ function buildQuestionnairePayload(state, contact) {
   return payload;
 }
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
+function storePendingResponse(payload) {
+  try {
+    localStorage.setItem(PENDING_RESPONSE_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // localStorage may be unavailable; ignore
+  }
+}
+
+function clearPendingResponse() {
+  try {
+    localStorage.removeItem(PENDING_RESPONSE_STORAGE_KEY);
+  } catch {
+    // localStorage may be unavailable; ignore
+  }
+}
+
+async function readResponsePayload(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+async function postQuestionnairePayload(payload) {
+  for (let attempt = 1; attempt <= SUBMIT_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch('/api/response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const responseBody = await readResponsePayload(response);
+
+      if (response.ok) {
+        return { ok: true, message: '' };
+      }
+
+      if (response.status >= 500 && attempt < SUBMIT_MAX_ATTEMPTS) {
+        await delay(SUBMIT_RETRY_DELAY_MS);
+        continue;
+      }
+
+      return {
+        ok: false,
+        message: responseBody?.error || 'Odeslání se nepovedlo, zkus to prosím znovu.',
+      };
+    } catch {
+      if (attempt < SUBMIT_MAX_ATTEMPTS) {
+        await delay(SUBMIT_RETRY_DELAY_MS);
+        continue;
+      }
+    }
+  }
+
+  return {
+    ok: false,
+    message: navigator.onLine === false
+      ? 'Vypadá to na problém s připojením, zkontroluj internet a zkus to prosím znovu.'
+      : 'Odeslání se nepovedlo, zkus to prosím znovu.',
+  };
+}
+
 async function submitQuestionnaireResponse(state, contact) {
   const payload = buildQuestionnairePayload(state, contact);
+  storePendingResponse(payload);
 
   try {
-    localStorage.setItem('50ka_response', JSON.stringify(payload));
+    localStorage.setItem(RESPONSE_STORAGE_KEY, JSON.stringify(payload));
   } catch {
     // localStorage may be unavailable (e.g. private browsing); continue anyway
   }
 
-  try {
-    const response = await fetch('/api/response', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
-    return response.ok;
-  } catch {
-    return false;
+  const submitResult = await postQuestionnairePayload(payload);
+  if (submitResult.ok) {
+    clearPendingResponse();
   }
+  return submitResult;
 }
 
 function initFunFactBox() {

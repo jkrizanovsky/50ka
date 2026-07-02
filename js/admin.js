@@ -11,29 +11,38 @@ const CHART_COLORS = [
   '#577590',
 ];
 
-const STATIC_FIELDS = [
+const LEGACY_STATIC_FIELDS = [
   {
-    key: 'faceChoice',
+    fieldKey: 'face-choice',
     label: 'Koho máš raději?',
-    getValue: (response) => response.choice || 'nezadano',
+    sortOrder: 0,
+    getValue: (response) => response.choice || 'Nezadáno',
+  },
+  {
+    fieldKey: 'attendance',
+    label: 'Účast 12.9.',
+    sortOrder: 1,
+    getValue: (response) => response.available || 'Uvidíme',
+  },
+  {
+    fieldKey: 'contact-name',
+    label: 'Jméno',
+    sortOrder: 9000,
+    getValue: (response) => response.name || 'Neuvedeno',
+  },
+  {
+    fieldKey: 'contact-email',
+    label: 'Email',
+    sortOrder: 9001,
+    getValue: (response) => response.email || 'Neuvedeno',
+  },
+  {
+    fieldKey: 'contact-phone',
+    label: 'Telefon',
+    sortOrder: 9002,
+    getValue: (response) => response.phone || 'Neuvedeno',
   },
 ];
-
-const QUESTION_LABELS = {
-  1: 'Účast 12.9.',
-  3: 'Přijdeš',
-  4: 'Čas příchodu',
-  5: 'Počet lidí',
-  6: 'Děti',
-  7: 'Jídlo',
-  8: 'Typ jídla',
-  9: 'Pití',
-  10: 'Hudba',
-  11: 'Přespání',
-  12: 'Odvoz',
-  13: 'Snídaně',
-  98: 'Podpora dobra',
-};
 
 function safeText(value, fallback = '—') {
   if (value == null) return fallback;
@@ -63,46 +72,84 @@ function formatChoice(choice) {
   return map[choice] || safeText(choice, 'Nezadáno');
 }
 
-function getChartLabelForAnswer(answer) {
-  if (!answer || !Number.isInteger(answer.stepId)) return safeText(answer && answer.question, 'Otázka');
-  return QUESTION_LABELS[answer.stepId] || safeText(answer.question, `Otázka ${answer.stepId}`);
+function formatAvailable(available) {
+  const map = {
+    ano: 'Ano',
+    ne: 'Ne',
+    uvidime: 'Uvidíme',
+  };
+
+  return map[available] || safeText(available, 'Uvidíme');
+}
+
+function normalizeAnswerFields(answerFields, row, answers) {
+  if (Array.isArray(answerFields) && answerFields.length) {
+    return answerFields
+      .filter((field) => field && typeof field === 'object' && field.fieldKey && field.label)
+      .map((field) => ({
+        fieldKey: String(field.fieldKey),
+        label: safeText(field.label, 'Položka'),
+        value: safeText(field.value, 'bez odpovědi'),
+        sortOrder: Number.isFinite(Number(field.sortOrder)) ? Number(field.sortOrder) : 9999,
+      }));
+  }
+
+  const legacyFields = LEGACY_STATIC_FIELDS.map((field) => ({
+    fieldKey: field.fieldKey,
+    label: field.label,
+    value: safeText(field.getValue(row), 'bez odpovědi'),
+    sortOrder: field.sortOrder,
+  }));
+  const legacyAnswers = answers.map((answer) => ({
+    fieldKey: `step-${answer.stepId}`,
+    label: safeText(answer.question, `Otázka ${answer.stepId}`),
+    value: safeText(answer.answer, 'bez odpovědi'),
+    sortOrder: answer.stepId,
+  }));
+
+  return [...legacyFields, ...legacyAnswers];
 }
 
 function normalizeResponses(rows) {
-  return rows.map((row) => ({
-    ...row,
-    name: safeText(row.name, 'Neuvedeno'),
-    email: safeText(row.email, 'Neuvedeno'),
-    phone: safeText(row.phone, 'Neuvedeno'),
-    choice: formatChoice(row.choice),
-    answers: parseAnswers(row.answers_json),
-  }));
+  return rows.map((row) => {
+    const answers = parseAnswers(row.answers_json);
+    const normalizedRow = {
+      ...row,
+      name: safeText(row.name, 'Neuvedeno'),
+      email: safeText(row.email, 'Neuvedeno'),
+      phone: safeText(row.phone, 'Neuvedeno'),
+      choice: formatChoice(row.choice),
+      available: formatAvailable(row.available),
+      answers,
+    };
+
+    return {
+      ...normalizedRow,
+      answerFields: normalizeAnswerFields(row.answer_fields, normalizedRow, answers),
+    };
+  });
 }
 
-function buildDynamicFields(responses) {
+function buildFilterFields(responses) {
   const fields = new Map();
 
   responses.forEach((response) => {
-    response.answers.forEach((answer) => {
-      if (!Number.isInteger(answer.stepId)) return;
-      const key = `step-${answer.stepId}`;
-      if (!fields.has(key)) {
-        fields.set(key, {
-          key,
-          label: getChartLabelForAnswer(answer),
-          getValue: (item) => {
-            const found = item.answers.find((entry) => entry.stepId === answer.stepId);
-            return safeText(found?.answer, 'bez odpovědi');
-          },
-        });
-      }
+    response.answerFields.forEach((field) => {
+      if (fields.has(field.fieldKey)) return;
+      fields.set(field.fieldKey, {
+        key: field.fieldKey,
+        label: field.label,
+        sortOrder: field.sortOrder,
+        getValue: (item) => {
+          const found = item.answerFields.find((entry) => entry.fieldKey === field.fieldKey);
+          return safeText(found?.value, 'bez odpovědi');
+        },
+      });
     });
   });
 
   return [...fields.values()].sort((a, b) => {
-    const aNumber = Number(a.key.replace('step-', ''));
-    const bNumber = Number(b.key.replace('step-', ''));
-    return aNumber - bNumber;
+    return a.sortOrder - b.sortOrder || a.label.localeCompare(b.label, 'cs');
   });
 }
 
@@ -239,6 +286,7 @@ function renderResponsesList(listEl, countEl, responses) {
       createMetaRow('Telefon', response.phone),
       createMetaRow('Odesláno', response.timestamp || response.created_at || '—'),
       createMetaRow('Volba obličeje', response.choice),
+      createMetaRow('Účast 12.9.', response.available),
     );
 
     const answersList = document.createElement('ul');
@@ -268,8 +316,7 @@ function initAdminPage() {
     })
     .then((rows) => {
       const responses = normalizeResponses(rows);
-      const dynamicFields = buildDynamicFields(responses);
-      const fields = [...STATIC_FIELDS, ...dynamicFields];
+      const fields = buildFilterFields(responses);
 
       renderResponsesList(listEl, countEl, responses);
 
@@ -303,9 +350,9 @@ function initAdminPage() {
       empty.textContent = safeText(error.message, 'Nepodařilo se načíst odpovědi.');
       listEl.replaceChildren(empty);
 
-      STATIC_FIELDS.forEach((field) => {
+      LEGACY_STATIC_FIELDS.forEach((field) => {
         const option = document.createElement('option');
-        option.value = field.key;
+        option.value = field.fieldKey;
         option.textContent = field.label;
         selectEl.appendChild(option);
       });
@@ -314,8 +361,8 @@ function initAdminPage() {
         drawPieChart(canvas, []);
         renderLegend(legendEl, []);
       };
-      if (STATIC_FIELDS.length) {
-        selectEl.value = STATIC_FIELDS[0].key;
+      if (LEGACY_STATIC_FIELDS.length) {
+        selectEl.value = LEGACY_STATIC_FIELDS[0].fieldKey;
         selectEl.addEventListener('change', renderChartForField);
       }
       renderChartForField();
