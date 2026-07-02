@@ -309,7 +309,7 @@ function initAdminPage() {
 
   if (!selectEl || !canvas || !legendEl || !listEl || !countEl) return;
 
-  fetch('https://50ka-backend-mwcv-production.up.railway.app/api/responses')
+  fetch('https://50ka-backend-production.up.railway.app/api/responses')
     .then((response) => {
       if (!response.ok) throw new Error('Nepodařilo se načíst odpovědi.');
       return response.json();
