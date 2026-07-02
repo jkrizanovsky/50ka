@@ -111,16 +111,23 @@ function normalizeAnswerFields(answerFields, row, answers) {
 }
 
 function normalizeResponses(rows) {
-  return rows.map((row) => ({
-    ...row,
-    name: safeText(row.name, 'Neuvedeno'),
-    email: safeText(row.email, 'Neuvedeno'),
-    phone: safeText(row.phone, 'Neuvedeno'),
-    choice: formatChoice(row.choice),
-    available: formatAvailable(row.available),
-    answers: parseAnswers(row.answers_json),
-    answerFields: [],
-  }));
+  return rows.map((row) => {
+    const answers = parseAnswers(row.answers_json);
+    const normalizedRow = {
+      ...row,
+      name: safeText(row.name, 'Neuvedeno'),
+      email: safeText(row.email, 'Neuvedeno'),
+      phone: safeText(row.phone, 'Neuvedeno'),
+      choice: formatChoice(row.choice),
+      available: formatAvailable(row.available),
+      answers,
+    };
+
+    return {
+      ...normalizedRow,
+      answerFields: normalizeAnswerFields(row.answer_fields, normalizedRow, answers),
+    };
+  });
 }
 
 function buildFilterFields(responses) {
@@ -279,6 +286,7 @@ function renderResponsesList(listEl, countEl, responses) {
       createMetaRow('Telefon', response.phone),
       createMetaRow('Odesláno', response.timestamp || response.created_at || '—'),
       createMetaRow('Volba obličeje', response.choice),
+      createMetaRow('Účast 12.9.', response.available),
     );
 
     const answersList = document.createElement('ul');
@@ -308,9 +316,6 @@ function initAdminPage() {
     })
     .then((rows) => {
       const responses = normalizeResponses(rows);
-      responses.forEach((response) => {
-        response.answerFields = normalizeAnswerFields(row.answer_fields, response, response.answers);
-      });
       const fields = buildFilterFields(responses);
 
       renderResponsesList(listEl, countEl, responses);

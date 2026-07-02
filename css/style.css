@@ -822,6 +822,8 @@ html:has(body.questionnaire-locked) {
   padding: 0.9rem 1rem;
   display: grid;
   gap: 0.8rem;
+  content-visibility: auto;
+  contain-intrinsic-size: 240px;
 }
 
 .response-card-title {
