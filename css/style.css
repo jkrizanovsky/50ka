@@ -1003,6 +1003,8 @@ html:has(body.questionnaire-locked) {
 
   .step-card[data-step-id="97"] {
     width: 100%;
+    max-height: 60vh;
+    overflow-y: auto;
     padding-top: 0.55rem;
     padding-bottom: 0.47rem;
   }
