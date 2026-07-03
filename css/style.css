@@ -516,10 +516,11 @@ html:has(body.questionnaire-locked) {
 }
 
 .step-card[data-step-id="97"] {
+  --instruction-card-max-height: 29rem;
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
-  height: min(60vh, 29rem);
+  height: min(60vh, var(--instruction-card-max-height));
   overflow: hidden;
 }
 
