@@ -34,16 +34,16 @@ if (!hasResponses && !hasResponseFields) {
   process.exit(0);
 }
 
-const counts = {
-  responses: hasResponses
-    ? db.prepare('SELECT COUNT(*) AS count FROM responses').get().count
-    : 0,
-  responseFields: hasResponseFields
-    ? db.prepare('SELECT COUNT(*) AS count FROM response_fields').get().count
-    : 0,
-};
-
 const clearTables = db.transaction(() => {
+  const counts = {
+    responses: hasResponses
+      ? db.prepare('SELECT COUNT(*) AS count FROM responses').get().count
+      : 0,
+    responseFields: hasResponseFields
+      ? db.prepare('SELECT COUNT(*) AS count FROM response_fields').get().count
+      : 0,
+  };
+
   if (hasResponseFields) db.prepare('DELETE FROM response_fields').run();
   if (hasResponses) db.prepare('DELETE FROM responses').run();
   if (hasSqliteSequence) {
@@ -52,11 +52,15 @@ const clearTables = db.transaction(() => {
       WHERE name IN ('responses', 'response_fields')
     `).run();
   }
+
+  return counts;
 });
 
-clearTables();
-db.close();
-
-console.log(
-  `Cleared ${counts.responses} responses and ${counts.responseFields} response fields from ${dbPath}.`
-);
+try {
+  const counts = clearTables();
+  console.log(
+    `Cleared ${counts.responses} responses and ${counts.responseFields} response fields from ${dbPath}.`
+  );
+} finally {
+  db.close();
+}
