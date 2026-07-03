@@ -34,6 +34,7 @@ function getOrCreateUserId() {
 const USER_ID = getOrCreateUserId();
 let hasMadeFaceChoice = false;
 let hasInitializedFunFactBox = false;
+const INSTRUCTION_STEP_ID = 97;
 const FUN_FACT_HIDDEN_STEPS = new Set([97, 98, 99]);
 const RESPONSE_STORAGE_KEY = '50ka_response';
 const PENDING_RESPONSE_STORAGE_KEY = '50ka_pending_response';
@@ -741,7 +742,7 @@ function createStepIllustration(stepId) {
 }
 
 function createInstructionSideImages(stepId) {
-  if (stepId !== 97) return null;
+  if (stepId !== INSTRUCTION_STEP_ID) return null;
 
   const wrap = document.createElement('div');
   wrap.className = 'step-side-images';
@@ -881,6 +882,10 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 }
 
 function renderInfoStep(stepId, step, card, showStep, state) {
+  if (stepId === INSTRUCTION_STEP_ID) {
+    card.classList.add('instruction-step-card');
+  }
+
   const titleEl = document.createElement('h2');
   titleEl.className = 'step-question';
   titleEl.textContent = step.title;
