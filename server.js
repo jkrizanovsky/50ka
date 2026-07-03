@@ -306,6 +306,7 @@ if (process.env.RESET_DB === 'true') {
 
 /* ---------- Express app ---------- */
 const app = express();
+app.set('trust proxy', 1);
 
 // Allow requests from GitHub Pages (root domain and any subdirectory path)
 app.use(cors({
@@ -326,6 +327,7 @@ const writeLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Nyní nelze odeslat, zkus to prosím za chvilku znovu.' },
+  skip: (req) => false,
 });
 
 const readLimiter = rateLimit({
@@ -334,6 +336,7 @@ const readLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Too many requests, please try again later.' },
+  skip: (req) => false,
 });
 
 /* POST /api/response — store / update a visitor's answer */
