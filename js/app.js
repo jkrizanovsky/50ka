@@ -41,11 +41,11 @@ const SUBMIT_RETRY_DELAY_MS = 900;
 const SUBMIT_MAX_ATTEMPTS = 2;
 const DATE_HIGHLIGHT_REGEX = /\bv sobotu\s+12\.9(?:\.2026)?|\b12\.9(?:\.2026)?/gi;
 const DATE_HIGHLIGHT_COLORS = [
-  { color: '#ff1178', glow: 'rgba(255, 17, 120, 0.75)' },
-  { color: '#00f0ff', glow: 'rgba(0, 240, 255, 0.7)' },
-  { color: '#fff200', glow: 'rgba(255, 242, 0, 0.75)' },
-  { color: '#7cff01', glow: 'rgba(124, 255, 1, 0.7)' },
-  { color: '#ff7a00', glow: 'rgba(255, 122, 0, 0.75)' },
+  '#a31545',
+  '#0057b8',
+  '#7a1fa2',
+  '#00695c',
+  '#9a3412',
 ];
 const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
@@ -1096,8 +1096,7 @@ function highlightDateMentions(value) {
 function applyDateHighlightPalette(index) {
   const palette = DATE_HIGHLIGHT_COLORS[index % DATE_HIGHLIGHT_COLORS.length];
   if (!palette || !document.documentElement) return;
-  document.documentElement.style.setProperty('--date-highlight-color', palette.color);
-  document.documentElement.style.setProperty('--date-highlight-glow', palette.glow);
+  document.documentElement.style.setProperty('--date-highlight-color', palette);
 }
 
 function cycleDateHighlightColors() {
