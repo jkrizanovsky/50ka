@@ -515,7 +515,7 @@ html:has(body.questionnaire-locked) {
   transform: translateY(0);
 }
 
-.step-card[data-step-id="97"] {
+.instruction-step-card {
   --instruction-card-desktop-max-height: 29rem;
   --instruction-card-viewport-height: 60vh;
   --instruction-card-scrollbar-offset: 0.35rem;
@@ -529,12 +529,12 @@ html:has(body.questionnaire-locked) {
   overflow: hidden;
 }
 
-.step-card[data-step-id="97"] .step-question,
-.step-card[data-step-id="97"] .step-next-btn {
+.instruction-step-card .step-question,
+.instruction-step-card .step-next-btn {
   flex-shrink: 0;
 }
 
-.step-card[data-step-id="97"] .step-info-content {
+.instruction-step-card .step-info-content {
   margin-top: 0;
   flex: 1;
   min-height: 0;
@@ -542,7 +542,7 @@ html:has(body.questionnaire-locked) {
   padding-right: var(--instruction-card-scrollbar-offset);
 }
 
-.step-card[data-step-id="97"] .step-next-btn {
+.instruction-step-card .step-next-btn {
   margin-top: 0;
   align-self: flex-start;
 }
@@ -1045,7 +1045,7 @@ html:has(body.questionnaire-locked) {
     padding: 0.625rem;
   }
 
-  .step-card[data-step-id="97"] {
+  .instruction-step-card {
     width: 100%;
     height: var(--instruction-card-viewport-height);
     padding-top: 0.55rem;

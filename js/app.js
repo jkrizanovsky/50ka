@@ -881,6 +881,10 @@ function renderQuestionStep(stepId, step, card, showStep, state) {
 }
 
 function renderInfoStep(stepId, step, card, showStep, state) {
+  if (stepId === 97) {
+    card.classList.add('instruction-step-card');
+  }
+
   const titleEl = document.createElement('h2');
   titleEl.className = 'step-question';
   titleEl.textContent = step.title;
