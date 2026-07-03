@@ -115,6 +115,16 @@ body {
   letter-spacing: 0.02em;
   text-align: center;
   margin-top: 0.3rem;
+  max-width: min(960px, 92vw);
+}
+
+.date-highlight {
+  color: var(--date-highlight-color, #ff1178);
+  font-weight: 700;
+  text-shadow:
+    0 0 0.3em var(--date-highlight-glow, rgba(255, 17, 120, 0.75)),
+    0 0 0.6em var(--date-highlight-glow, rgba(255, 17, 120, 0.55));
+  transition: color 0.18s linear, text-shadow 0.18s linear;
 }
 
 #scroll-cue {
@@ -679,6 +689,10 @@ html:has(body.questionnaire-locked) {
   padding: 0.6rem 0.75rem;
   font-size: 1rem;
   font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.final-form-field input:focus:invalid {
+  border-color: #d7263d;
 }
 
 .final-form-status {
