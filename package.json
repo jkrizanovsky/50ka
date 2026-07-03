@@ -4,6 +4,7 @@
   "description": "Party invitation website — 50th birthday",
   "main": "server.js",
   "scripts": {
+    "clear-responses": "node scripts/clear-responses.js",
     "start": "node server.js",
     "dev": "node server.js"
   },
