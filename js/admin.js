@@ -20,7 +20,7 @@ const LEGACY_STATIC_FIELDS = [
   },
   {
     fieldKey: 'attendance',
-    label: 'Účast 12.9.',
+    label: 'Účast v sobotu 12.9.',
     sortOrder: 1,
     getValue: (response) => response.available || 'Uvidíme',
   },
@@ -278,7 +278,7 @@ function createResponseCard(response) {
     createMetaRow('Telefon', response.phone),
     createMetaRow('Odesláno', getResponseTimestamp(response)),
     createMetaRow('Volba obličeje', response.choice),
-    createMetaRow('Účast 12.9.', response.available),
+    createMetaRow('Účast v sobotu 12.9.', response.available),
   );
 
   const answersList = document.createElement('ul');

@@ -26,6 +26,7 @@ const MAX_EMAIL_LENGTH = 320;
 const MAX_PHONE_LENGTH = 80;
 const TRACKED_QUESTIONNAIRE_STEP_IDS = new Set([1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 98]);
 const FACE_CHOICE_LABEL = 'Koho máš raději?';
+const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 const CONTACT_FIELDS = [
   { fieldKey: 'contact-name', label: 'Jméno', sortOrder: 9000 },
   { fieldKey: 'contact-email', label: 'Email', sortOrder: 9001 },
@@ -56,6 +57,27 @@ function normalizeOptionalText(value, maxLength = MAX_ANSWER_TEXT_LENGTH) {
   const trimmed = value.trim();
   if (!trimmed) return null;
   return trimmed.slice(0, maxLength);
+}
+
+function isValidEmailAddress(value) {
+  return BASIC_EMAIL_REGEX.test(String(value || '').trim());
+}
+
+function normalizePhoneNumber(value) {
+  return String(value || '').replace(/[\s().-]/g, '');
+}
+
+function isValidCzechOrSlovakPhoneNumber(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || !/^[+\d\s().-]+$/.test(trimmed)) return false;
+
+  const normalized = normalizePhoneNumber(trimmed);
+  if (!/^\+?\d+$/.test(normalized)) return false;
+
+  if (/^\+420\d{9}$/.test(normalized) || /^420\d{9}$/.test(normalized)) return true;
+  if (/^\+421\d{9}$/.test(normalized) || /^421\d{9}$/.test(normalized)) return true;
+  if (/^\d{9}$/.test(normalized)) return true;
+  return /^0\d{9}$/.test(normalized);
 }
 
 function normalizeAnswers(answers) {
@@ -122,7 +144,7 @@ function buildResponseFields({ choice, available, name, email, phone, answers })
   if (storedAvailability) {
     fields.push({
       fieldKey: 'attendance',
-      label: 'Účast 12.9.',
+      label: 'Účast v sobotu 12.9.',
       value: storedAvailability,
       sortOrder: 1,
     });
@@ -343,6 +365,15 @@ app.post('/api/response', writeLimiter, (req, res) => {
   const normalizedName = normalizeOptionalText(getSubmittedContactField(contact, 'name', name), MAX_NAME_LENGTH);
   const normalizedEmail = normalizeOptionalText(getSubmittedContactField(contact, 'email', email), MAX_EMAIL_LENGTH);
   const normalizedPhone = normalizeOptionalText(getSubmittedContactField(contact, 'phone', phone), MAX_PHONE_LENGTH);
+
+  if (normalizedEmail && !isValidEmailAddress(normalizedEmail)) {
+    return res.status(400).json({ error: 'Zadej prosím platný e-mail.' });
+  }
+
+  if (normalizedPhone && !isValidCzechOrSlovakPhoneNumber(normalizedPhone)) {
+    return res.status(400).json({ error: 'Zadej prosím platné české nebo slovenské telefonní číslo.' });
+  }
+
   const responseData = {
     userId,
     choice: normalizedChoice || null,

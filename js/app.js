@@ -39,6 +39,15 @@ const RESPONSE_STORAGE_KEY = '50ka_response';
 const PENDING_RESPONSE_STORAGE_KEY = '50ka_pending_response';
 const SUBMIT_RETRY_DELAY_MS = 900;
 const SUBMIT_MAX_ATTEMPTS = 2;
+const DATE_HIGHLIGHT_REGEX = /\bv sobotu\s+12\.9(?:\.2026)?|\b12\.9(?:\.2026)?/gi;
+const DATE_HIGHLIGHT_COLORS = [
+  { color: '#ff1178', glow: 'rgba(255, 17, 120, 0.75)' },
+  { color: '#00f0ff', glow: 'rgba(0, 240, 255, 0.7)' },
+  { color: '#fff200', glow: 'rgba(255, 242, 0, 0.75)' },
+  { color: '#7cff01', glow: 'rgba(124, 255, 1, 0.7)' },
+  { color: '#ff7a00', glow: 'rgba(255, 122, 0, 0.75)' },
+];
+const BASIC_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
 const FUN_FACTS = [
   '50 let je v přepočtu přes 26 milionů minut. Dohromady to tedy znamená že naši oslavenci již strávili na zemi přes 52 milionů minut života.',
@@ -107,6 +116,7 @@ const NUMBER_VARIANTS = {
 };
 
 let cycleIndex = 0;
+let dateHighlightIndex = 0;
 
 function pickRandomVariant(numberKey) {
   const variants = NUMBER_VARIANTS[numberKey] || [];
@@ -314,7 +324,7 @@ function chooseRight() {
    ============================================================ */
 const formSteps = {
   1: {
-    question: 'Máš čas 12.9.2026?',
+    question: 'Máš čas v sobotu 12.9.2026?',
     options: [
       { text: 'Ano', reaction: 'To zní nadějně...', nextId: 3 },
       { text: 'Ne', reaction: 'To je škoda, ale měl by ses ještě zamyslet', nextId: 3 },
@@ -352,7 +362,7 @@ const formSteps = {
     options: [
       { text: 'Ano jedno', reaction: 'Jedno se ztratí...', nextId: 7 },
       { text: 'Ano dvě nebo víc', reaction: 'Ztratí se všechny...', nextId: 7 },
-      { text: 'Vezmu sestřičku z děcáku', reaction: 'Správně, ale musí mít jen 18...', nextId: 7 },
+      { text: 'Vezmu sestřičku z důchoďáku', reaction: 'Správně, ale musí mít jen plavky.', nextId: 7 },
       { text: 'Vyrobíme až na místě', reaction: 'Správně, kondomy na místě nebudou', nextId: 7 },
     ],
   },
@@ -362,7 +372,7 @@ const formSteps = {
     options: [
       { text: 'Jsem masožrout', reaction: 'Něco se pro tebe najde', nextId: 8 },
       { text: 'Jsem kytkožrout', reaction: 'Něco se pro tebe najde', nextId: 8 },
-      { text: 'Vše co projde kolem', reaction: 'To abychom něco schovali', nextId: 8 },
+      { text: 'Vše co projde kolem', reaction: 'Tak to abychom aspoň kočky poschovávali.', nextId: 8 },
       { text: 'Žiju ze vzduchu', reaction: 'Správně, to je vítaný host!', nextId: 9 },
     ],
   },
@@ -371,7 +381,7 @@ const formSteps = {
     options: [
       { text: 'Vepřo/hovězo', reaction: 'Pořádná prasečina/volovina', nextId: 9 },
       { text: 'Drůbež', reaction: 'Pipka z VIPka', nextId: 9 },
-      { text: 'Ryba', reaction: 'Jestli budou brát, raději si přines', nextId: 9 },
+      { text: 'Ryba', reaction: 'Jestli budou brát, raději si vem svačinu.', nextId: 9 },
       { text: 'cokoli', reaction: 'Něco najdeme', nextId: 9 },
       { text: 'opravdu jsem kytkožrout', reaction: 'ne každý má to štěstí', nextId: 9 },
     ],
@@ -426,14 +436,27 @@ const formSteps = {
     content: `
       <strong>Kde:</strong> Kulturák Běleč<br>
       Běleč 66, 383 01 Těšovice - Běleč, Jihočeský kraj, Česko;<br>
-      <a href="https://mapy.cz/s/mekoragefe" target="_blank" rel="noopener noreferrer">Odkaz na mapu</a><br>
-      GPS: 49.0485053N, 14.0348231E<br><br>
-      <strong>Kdy:</strong> 12.9.2026 od 17:00<br><br>
-      <strong>Co:</strong> párty L+P. Čeká nás posezení v pohodlném prostředí, nějaké pivo, víno, občerstvení, reprodukovaná hudba...<br>
-      <strong>Co s sebou:</strong> Dobrou náladu! (Pokud spíš: stan, karimatku, spacák).<br>
-      Dary prosím nenos (játra si zničit nenecháme :-)).<br><br>
-      <p>Pro organizaci je důležité mít přehled, proto prosím dotazník vyplň svědomitě.</p>
-      <p>Tipy na ubytování v okolí: <a href="https://www.pthotel.cz" target="_blank" rel="noopener noreferrer">pthotel.cz</a>, <a href="https://www.hotelparkan.cz" target="_blank" rel="noopener noreferrer">hotelparkan.cz</a>...</p>
+      <a href="https://mapy.com/s/mekoragefe" target="_blank" rel="noopener noreferrer">https://mapy.com/s/mekoragefe</a><br>
+      GPS (WGS84): 49.0485053N, 14.0348231E<br><br>
+      <strong>Kdy:</strong> 12.9.2026 od 17<br><br>
+      <strong>Co:</strong> párty L+P<br>
+      Čeká nás posezení v pohodlném prostředí, nějaké pivo, víno (i nealko se najde), občerstvení, reprodukovaná hudba (zpěv povolen, tanec jakbysmet). Bude to hromadná akce, ale bát se nemusíš, určitě někoho znát budeš ;-)<br><br>
+      <strong>Co s sebou:</strong><br>
+      Nepotřebuješ vlastně nic. Jen nezapomeň doma dobrou náladu!<br>
+      Tedy pokud chceš přespat, vezmi si:<br>
+      - stan - odvážní, co se nebojí ježků<br>
+      - karimatku a spacák - velmi odvážní, co se chtějí tulit s ježky, kočkami (čtyřnohými), cvrčky a případně dalšími breberkami na louce.<br>
+      - nic - nejodvážnější spáči nebo bázlivci co pojedou domů<br><br>
+      Dary prosím nenos (játra si zničit nenecháme ;-) )<br>
+      Jestli chceš udělat někomu radost, budeš mít možnost.<br><br>
+      <p>Pro organizaci je důležité mít přehled ohledně počtu a preferencí příchozích, proto prosím dotazník vyplň svědomitě, včetně podpisů a kontaktních údajů na závěr. Děkujeme.</p>
+      <p>Doprava po blízkém okolí bude zajištěna. Můžeš u nás i nechat auto a nechat se odvézt.<br>
+      Pokud chceš využít ubytování v komfortu, zajisti si něco prosím sám (dopravíme tě tam). Tipy třeba zde:<br>
+      <a href="https://www.pthotel.cz" target="_blank" rel="noopener noreferrer">www.pthotel.cz</a><br>
+      <a href="https://www.hotelparkan.cz" target="_blank" rel="noopener noreferrer">www.hotelparkan.cz</a><br>
+      <a href="https://www.penziontina.cz" target="_blank" rel="noopener noreferrer">www.penziontina.cz</a><br>
+      <a href="https://penzionpodhradbami.cz" target="_blank" rel="noopener noreferrer">penzionpodhradbami.cz</a><br>
+      <a href="https://www.pivovarprachatice.cz/ubytovani/" target="_blank" rel="noopener noreferrer">www.pivovarprachatice.cz/ubytovani/</a></p>
     `,
     nextBtnText: 'Pokračovat k dárkům',
     nextBtnReaction: 'těšíme se na vás, ale ještě předtím...',
@@ -585,6 +608,7 @@ function initQuestionnaireNumberBouncer() {
 
     if (hasBounced) {
       applyVariant();
+      cycleDateHighlightColors();
     }
 
     bouncerEl.style.transform = `translate3d(${Math.round(posX)}px, ${Math.round(posY)}px, 0)`;
@@ -629,6 +653,7 @@ function initQuestionnaireNumberBouncer() {
   velocityY = Math.random() > 0.5 ? Math.abs(velocityY) : -Math.abs(velocityY);
   applyVariant();
   clampInViewport();
+  applyDateHighlightPalette(0);
 
   window.addEventListener('resize', clampInViewport, { passive: true });
   document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -790,13 +815,13 @@ function showQuestionnaireTransition(mainText, subText, onDone) {
 function renderQuestionStep(stepId, step, card, showStep, state) {
   const questionEl = document.createElement('h2');
   questionEl.className = 'step-question';
-  questionEl.textContent = step.question;
+  questionEl.innerHTML = highlightDateMentions(step.question);
   card.appendChild(questionEl);
 
   if (step.description) {
     const descriptionEl = document.createElement('p');
     descriptionEl.className = 'step-description';
-    descriptionEl.textContent = step.description;
+    descriptionEl.innerHTML = highlightDateMentions(step.description);
     card.appendChild(descriptionEl);
   }
 
@@ -863,7 +888,7 @@ function renderInfoStep(stepId, step, card, showStep, state) {
 
   const contentEl = document.createElement('div');
   contentEl.className = 'step-info-content';
-  contentEl.innerHTML = step.content;
+  contentEl.innerHTML = highlightDateMentions(step.content);
   card.appendChild(contentEl);
 
   const button = document.createElement('button');
@@ -933,6 +958,20 @@ function renderFinalForm(stepId, step, card, state) {
     input.name = fieldConfig.name;
     input.type = fieldConfig.type;
     input.autocomplete = fieldConfig.autocomplete;
+    input.inputMode = fieldConfig.inputMode || '';
+    input.placeholder = fieldConfig.placeholder || '';
+    if (fieldConfig.maxLength) {
+      input.maxLength = fieldConfig.maxLength;
+    }
+    if (fieldConfig.validationMessage) {
+      input.dataset.validationMessage = fieldConfig.validationMessage;
+      input.addEventListener('input', () => {
+        validateContactInput(input);
+      });
+      input.addEventListener('blur', () => {
+        validateContactInput(input);
+      });
+    }
 
     fieldWrap.appendChild(input);
     form.appendChild(fieldWrap);
@@ -951,6 +990,7 @@ function renderFinalForm(stepId, step, card, state) {
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
     if (state.completed) return;
+    if (!validateFinalForm(form)) return;
 
     const formData = new FormData(form);
     const contact = Object.fromEntries(formData.entries());
@@ -1014,6 +1054,10 @@ function getFinalFormFieldConfig(fieldLabel) {
       name: 'email',
       type: 'email',
       autocomplete: 'email',
+      inputMode: 'email',
+      placeholder: 'např. lenka@oslava.cz',
+      maxLength: 320,
+      validationMessage: 'Zadej prosím platný e-mail, například lenka@oslava.cz.',
     };
   }
 
@@ -1023,6 +1067,10 @@ function getFinalFormFieldConfig(fieldLabel) {
       name: 'phone',
       type: 'tel',
       autocomplete: 'tel',
+      inputMode: 'tel',
+      placeholder: 'např. +420 123 456 789 nebo +421 912 345 678',
+      maxLength: 24,
+      validationMessage: 'Zadej prosím platné české nebo slovenské telefonní číslo.',
     };
   }
 
@@ -1031,7 +1079,81 @@ function getFinalFormFieldConfig(fieldLabel) {
     name: 'name',
     type: 'text',
     autocomplete: 'name',
+    maxLength: 120,
   };
+}
+
+function highlightDateMentions(value) {
+  if (value == null) return '';
+  return String(value).replace(DATE_HIGHLIGHT_REGEX, (match) => {
+    const text = match.toLowerCase().startsWith('v sobotu')
+    ? match
+    : `v sobotu ${match}`;
+    return `<span class="date-highlight">${text}</span>`;
+  });
+}
+
+function applyDateHighlightPalette(index) {
+  const palette = DATE_HIGHLIGHT_COLORS[index % DATE_HIGHLIGHT_COLORS.length];
+  if (!palette || !document.documentElement) return;
+  document.documentElement.style.setProperty('--date-highlight-color', palette.color);
+  document.documentElement.style.setProperty('--date-highlight-glow', palette.glow);
+}
+
+function cycleDateHighlightColors() {
+  dateHighlightIndex = (dateHighlightIndex + 1) % DATE_HIGHLIGHT_COLORS.length;
+  applyDateHighlightPalette(dateHighlightIndex);
+}
+
+function isValidEmailAddress(value) {
+  const trimmed = String(value || '').trim();
+  return BASIC_EMAIL_REGEX.test(trimmed);
+}
+
+function normalizePhoneNumber(value) {
+  return String(value || '').replace(/[\s().-]/g, '');
+}
+
+function isValidCzechOrSlovakPhoneNumber(value) {
+  const trimmed = String(value || '').trim();
+  if (!trimmed || !/^[+\d\s().-]+$/.test(trimmed)) return false;
+
+  const normalized = normalizePhoneNumber(trimmed);
+  if (!/^\+?\d+$/.test(normalized)) return false;
+
+  if (/^\+420\d{9}$/.test(normalized) || /^420\d{9}$/.test(normalized)) return true;
+  if (/^\+421\d{9}$/.test(normalized) || /^421\d{9}$/.test(normalized)) return true;
+  if (/^\d{9}$/.test(normalized)) return true;
+  return /^0\d{9}$/.test(normalized);
+}
+
+function validateContactInput(input) {
+  if (!input) return true;
+  const trimmedValue = String(input.value || '').trim();
+
+  if (!trimmedValue) {
+    input.setCustomValidity('');
+    return true;
+  }
+
+  let isValid = true;
+  if (input.name === 'email') {
+    isValid = isValidEmailAddress(trimmedValue);
+  } else if (input.name === 'phone') {
+    isValid = isValidCzechOrSlovakPhoneNumber(trimmedValue);
+  }
+
+  input.setCustomValidity(isValid ? '' : (input.dataset.validationMessage || 'Zkontroluj prosím vyplněnou hodnotu.'));
+  return isValid;
+}
+
+function validateFinalForm(form) {
+  if (!form) return false;
+  const inputs = [...form.querySelectorAll('input')];
+  inputs.forEach((input) => {
+    validateContactInput(input);
+  });
+  return form.reportValidity();
 }
 
 function getLegacyChoiceValue(choice) {
