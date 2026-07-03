@@ -296,6 +296,14 @@ function backfillResponseFields() {
 
 backfillResponseFields();
 
+// Optional: Reset database if RESET_DB environment variable is set
+if (process.env.RESET_DB === 'true') {
+  console.log('⚠️  RESET_DB is set - clearing all responses...');
+  db.exec('DELETE FROM responses');
+  db.exec('DELETE FROM response_fields');
+  console.log('✅ Database cleared');
+}
+
 /* ---------- Express app ---------- */
 const app = express();
 
